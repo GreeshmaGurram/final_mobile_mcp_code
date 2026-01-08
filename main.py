@@ -21,12 +21,12 @@ mcp = FastMCP("PhaseBasedMCP")
 generation_tools_registration(mcp)
 
 # Register prompt
-@mcp.prompt()
-def run(prompt: str) -> str:
-    return run_phase(
-        phase=GenerationPhase(),
-        user_prompt=prompt
-    )
+# @mcp.prompt()
+# def run(prompt: str) -> str:
+#     return run_phase(
+#         phase=GenerationPhase(),
+#         user_prompt=prompt
+#     )
 
 
 if __name__ == "__main__":
@@ -66,7 +66,6 @@ if __name__ == "__main__":
     time.sleep(2)
 
 
-    # Proxy all requests to the MCP server
     @app.api_route("/mcp", methods=["GET", "POST", "OPTIONS"])
     @app.api_route("/mcp/{path:path}", methods=["GET", "POST", "OPTIONS"])
     async def proxy_mcp(request: Request, path: str = ""):
@@ -85,7 +84,10 @@ if __name__ == "__main__":
         if path:
             url += f"/{path}"
 
-        async with httpx.AsyncClient() as client:
+        # CRITICAL FIX: Set a much longer timeout
+        timeout = httpx.Timeout(300.0, connect=60.0)  # 5 minutes total, 60s connect
+
+        async with httpx.AsyncClient(timeout=timeout) as client:
             headers = dict(request.headers)
             headers.pop("host", None)
 

@@ -13,6 +13,7 @@ STATIC_PROJECT_NAME = "TestProject"
 JWT: str = ""
 USER_ID: str = ""
 CURRENT_PROJECT: str = ""
+CURRENT_JOB_ID: str = ""  # Added for job_id tracking
 
 # Persistent storage location: ~/.genwizard_mcp/jwt_token.json
 TOKEN_FILE = Path.home() / ".genwizard_mcp" / "jwt_token.json"
@@ -24,7 +25,7 @@ def _ensure_storage_dir() -> None:
 
 def _load_context_from_disk() -> Dict[str, Any]:
     """
-    Load the persisted context (access_token, user_id, current_project).
+    Load the persisted context (access_token, user_id, current_project, job_id).
     Returns empty defaults if not found or on error.
     """
     if not TOKEN_FILE.exists():
@@ -60,6 +61,7 @@ def _get_ctx() -> Dict[str, Any]:
         "access_token": JWT or "",
         "user_id": USER_ID or "",
         "current_project": CURRENT_PROJECT or "",
+        "job_id": CURRENT_JOB_ID or "",  # Added job_id to context
     }
 
 
@@ -91,6 +93,18 @@ def set_current_project(project_name: str) -> None:
     CURRENT_PROJECT = project_name or ""
     ctx = _get_ctx()
     _save_context_to_disk(ctx)
+
+
+def set_job_id(job_id: str) -> None:
+    """
+    Set job_id in memory and persist it to disk.
+    This allows the job_id to be referenced across the entire MCP session.
+    """
+    global CURRENT_JOB_ID
+    CURRENT_JOB_ID = job_id or ""
+    ctx = _get_ctx()
+    _save_context_to_disk(ctx)
+    print(f"Job ID '{job_id}' stored and persisted.")
 
 
 def get_jwt() -> str:
@@ -130,6 +144,19 @@ def get_current_project() -> str:
     return CURRENT_PROJECT
 
 
+def get_job_id() -> str:
+    """
+    Retrieve the job_id from memory, falling back to disk if necessary.
+    This allows any part of the MCP to access the current job_id.
+    """
+    global CURRENT_JOB_ID
+    if CURRENT_JOB_ID:
+        return CURRENT_JOB_ID
+    data = _load_context_from_disk()
+    CURRENT_JOB_ID = data.get("job_id", "") or ""
+    return CURRENT_JOB_ID
+
+
 def clear_jwt() -> None:
     """
     Clear JWT from memory and disk (e.g., on logout).
@@ -142,6 +169,17 @@ def clear_jwt() -> None:
             TOKEN_FILE.unlink()
     except Exception as e:
         print(f"Warning: failed to delete context file: {e}")
+
+
+def clear_job_id() -> None:
+    """
+    Clear the job_id from memory and disk.
+    """
+    global CURRENT_JOB_ID
+    CURRENT_JOB_ID = ""
+    ctx = _get_ctx()
+    _save_context_to_disk(ctx)
+    print("Job ID cleared.")
 
 
 def get_auth_headers() -> dict:
@@ -218,6 +256,7 @@ _loaded = _load_context_from_disk()
 JWT = _loaded.get("access_token", "") or ""
 USER_ID = str(_loaded.get("user_id", "") or "")
 CURRENT_PROJECT = _loaded.get("current_project", "") or ""
+CURRENT_JOB_ID = _loaded.get("job_id", "") or ""  # Load job_id on startup
 
 if __name__ == "__main__":
     # Example usage for manual testing:
@@ -225,3 +264,4 @@ if __name__ == "__main__":
     print("Current JWT:", get_jwt())
     print("Current user_id:", get_user_id())
     print("Current project:", get_current_project())
+    print("Current job_id:", get_job_id())
