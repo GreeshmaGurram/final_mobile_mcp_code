@@ -1,7 +1,8 @@
 import mcp
 import requests
+import os
 from tools.base import login_check, get_jwt,get_auth_headers, get_user_id, get_current_project, set_job_id,get_job_id
-BASE_URL = "http://localhost:8081/"
+BASE_URL = os.getenv("BASE_URL")
 def generation_tools_registration(mcp):
 
     @mcp.tool()

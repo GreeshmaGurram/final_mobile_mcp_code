@@ -2,10 +2,20 @@ import json
 from pathlib import Path
 from typing import Dict, Any
 import requests
+import os
+
+try:
+    from dotenv import load_dotenv  # type: ignore
+except Exception:
+    load_dotenv = None
+
+if load_dotenv:
+    # Loads .env from current working directory or project root if run there
+    load_dotenv()
 
 STATIC_USERNAME = "admin"
 STATIC_PASSWORD = "static_password"
-
+BASE_URL = os.getenv("BASE_URL")
 # Static project name to set after login
 STATIC_PROJECT_NAME = "TestProject"
 
@@ -195,7 +205,7 @@ def set_current_project_api(project_name: str, user_id: str) -> bool:
     Calls GET /setCurrentProject?project=<project_name>&userId=<user_id>.
     On success, stores project_name (and user_id if provided).
     """
-    url = "http://localhost:8081/setCurrentProject"
+    url = BASE_URL+"setCurrentProject"
     params = {"project": project_name, "userId": user_id}
     headers = get_auth_headers()
     try:
@@ -217,7 +227,7 @@ def login_check():
     Perform login check and store JWT if received.
     Then set a static current project for the logged-in user via the API.
     """
-    url = "http://localhost:8081/login_check"
+    url = BASE_URL+"login_check"
     params = {
         "user_name": STATIC_USERNAME
     }
