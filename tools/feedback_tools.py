@@ -93,6 +93,8 @@ def feedback_tools_registration(mcp):
         # STEP 1: Call getAETestcase to generate test JSON
         test_case_id = 1
         sequence_no = 2
+        if refinement_text is "":
+            refinement_text = "N/A"
         try:
             url_ae = BASE_FRONTEND_URL + "getAETestcase_mcp"
 
@@ -168,7 +170,7 @@ def feedback_tools_registration(mcp):
 
             validation_payload = {
                 "send_to_validation_or_refine": "Validation",  # or "refine" - please confirm which one you need
-                "test_case_id": test_case_id,
+                "test_case_id": "test_case_"+str(test_case_id),
                 "test_case_name": test_case_name
             }
 
@@ -182,7 +184,16 @@ def feedback_tools_registration(mcp):
             result_message += "Save Feedback Response:\n" + json.dumps(data, ensure_ascii=False, indent=2)
             result_message += "\n\nValidation Response:\n" + json.dumps(validation_data, ensure_ascii=False, indent=2)
 
-            return result_message
+
+
+
+            # def _get_user_input(self, job_id, data: dict = Body(...), token: str = Depends(jwt_required)):
+            #     j_id = int(job_id)
+            #     if j_id not in self.jobs:
+            #         return JSONResponse(content={"error": "Job not found"}, status_code=404)
+            #     input_from_user = data.get('user_input')
+
+            #return result_message
 
         except requests.HTTPError as e:
             return f"Feedback saved but failed to send to validation: HTTP error {e.response.status_code}. Response: {e.response.text}"
@@ -190,3 +201,25 @@ def feedback_tools_registration(mcp):
             return f"Feedback saved but failed to send to validation: Network error. Error: {str(e)}"
         except Exception as e:
             return f"Feedback saved but failed to send to validation: Unexpected error. Error: {str(e)}"
+
+        try:
+            url_user_input = BASE_URL + f"/userInput/{job_id}"
+
+            user_input_payload = {
+                "user_input": "Continue",  # or "refine" - please confirm which one you need
+            }
+
+            response = requests.post(url_user_input, json=user_input_payload, headers=headers)
+            response.raise_for_status()
+            user_input_data = response.json()
+            return result_message
+
+
+        except requests.HTTPError as e:
+            return f"Feedback saved but failed to send to validation (Continue): HTTP error {e.response.status_code}. Response: {e.response.text}"
+        except requests.RequestException as e:
+            return f"Feedback saved but failed to send to validation (Continue): Network error. Error: {str(e)}"
+        except Exception as e:
+            return f"Feedback saved but failed to send to validation (Continue): Unexpected error. Error: {str(e)}"
+
+
