@@ -8,6 +8,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from tools.generation_tools import generation_tools_registration
+from tools.feedback_tools import feedback_tools_registration
 import httpx
 
 # Add logging
@@ -19,6 +20,7 @@ mcp = FastMCP("PhaseBasedMCP")
 
 # Register tool
 generation_tools_registration(mcp)
+feedback_tools_registration(mcp)
 
 # Register prompt
 # @mcp.prompt()
