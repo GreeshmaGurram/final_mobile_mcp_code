@@ -8,7 +8,7 @@ from tools.base import login_check, get_jwt, get_auth_headers, get_user_id, get_
 
 BASE_URL = os.getenv("BASE_URL")
 SELECTED_APPLICATION = "General"
-BASE_FRONTEND_URL = os.getenv("BASE_FRONTEND_URL", "http://localhost:8080/Quality_Engineering_Agents/ai/")
+BASE_FRONTEND_URL = os.getenv("BASE_FRONTEND_URL", "http://localhost:8082/Quality_Engineering_Agents/ai/")
 
 
 def feedback_tools_registration(mcp):
@@ -97,6 +97,8 @@ def feedback_tools_registration(mcp):
             refinement_text = "N/A"
         try:
             url_ae = BASE_FRONTEND_URL + "getAETestcase_mcp"
+            if refinement_text is "":
+                refinement_text="N/A"
 
             # Build the genAITestCases string
             prefix_tc = f"Test Case: {test_case_description}\nFile Name: {test_case_name}\n"

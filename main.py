@@ -11,6 +11,9 @@ from tools.generation_tools import generation_tools_registration
 from tools.feedback_tools import feedback_tools_registration
 import httpx
 
+from tools.script_execution_tools import script_execution_tools_registration
+from tools.script_generation_tools import script_generation_tools_registration
+
 # Add logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -20,7 +23,9 @@ mcp = FastMCP("PhaseBasedMCP")
 
 # Register tool
 generation_tools_registration(mcp)
+script_generation_tools_registration(mcp)
 feedback_tools_registration(mcp)
+script_execution_tools_registration(mcp)
 
 # Register prompt
 # @mcp.prompt()
