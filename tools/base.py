@@ -14,7 +14,7 @@ if load_dotenv:
     load_dotenv()
 
 STATIC_USERNAME = "admin"
-STATIC_PASSWORD = "static_password"
+STATIC_PASSWORD = "admin123"
 BASE_URL = os.getenv("BASE_URL")
 # Static project name to set after login
 STATIC_PROJECT_NAME = "TestProject"
@@ -22,6 +22,7 @@ STATIC_PROJECT_NAME = "TestProject"
 # In-memory cache
 JWT: str = ""
 USER_ID: str = ""
+USER_NAME: str = ""
 CURRENT_PROJECT: str = ""
 CURRENT_JOB_ID: str = ""  # Added for job_id tracking
 
@@ -71,7 +72,8 @@ def _get_ctx() -> Dict[str, Any]:
         "access_token": JWT or "",
         "user_id": USER_ID or "",
         "current_project": CURRENT_PROJECT or "",
-        "job_id": CURRENT_JOB_ID or "",  # Added job_id to context
+        "job_id": CURRENT_JOB_ID or "",
+        "user_name": USER_NAME or ""
     }
 
 
@@ -91,6 +93,15 @@ def set_user_id(user_id: str) -> None:
     """
     global USER_ID
     USER_ID = str(user_id or "")
+    ctx = _get_ctx()
+    _save_context_to_disk(ctx)
+
+def set_user_name(user_name: str) -> None:
+    """
+    Set user_id in memory and persist it to disk.
+    """
+    global USER_NAME
+    USER_NAME = str(user_name or "")
     ctx = _get_ctx()
     _save_context_to_disk(ctx)
 
@@ -141,6 +152,17 @@ def get_user_id() -> str:
     USER_ID = str(data.get("user_id", "") or "")
     return USER_ID
 
+
+def get_user_name() -> str:
+    """
+    Retrieve the user_id from memory, falling back to disk if necessary.
+    """
+    global USER_NAME
+    if USER_NAME:
+        return USER_NAME
+    data = _load_context_from_disk()
+    USER_NAME = str(data.get("user_name", "") or "")
+    return USER_NAME
 
 def get_current_project() -> str:
     """
@@ -222,44 +244,83 @@ def set_current_project_api(project_name: str, user_id: str) -> bool:
         return False
 
 
+
 def login_check():
     """
-    Perform login check and store JWT if received.
-    Then set a static current project for the logged-in user via the API.
+    Check if current session is alive by calling the isSessionAlive API with JWT in headers.
+    Returns a dict: {"status": "Session alive"} or {"status": "Signed out"}.
     """
-    url = BASE_URL+"login_check"
-    params = {
-        "user_name": STATIC_USERNAME
-    }
+    url = BASE_URL + "isSessionAlive"
     try:
-        response = requests.get(url, params=params)
-        response.raise_for_status()
-        data = response.json()
+        headers = get_auth_headers()
+        response = requests.get(url, headers=headers, timeout=10)
+
         if response.status_code == 200:
-            token = data.get("access_token")
-            user_id = str(data.get("user_id", "") or "")
-            if token:
-                set_jwt(token)
-                print("Login check successful, JWT stored")
-            else:
-                print("Login check successful but no access_token in response")
+            # Prefer server-provided status if available, fallback to "Session alive"
+            try:
+                data = response.json()
+                status = data.get("status") or "Session alive"
+            except Exception:
+                status = "Session alive"
+            return True
 
-            if user_id:
-                set_user_id(user_id)
+        if response.status_code == 401:
+            return False
 
-            # After login, set the current project using a static name
-            if token and user_id:
-                success = set_current_project_api(STATIC_PROJECT_NAME, user_id)
-                if not success:
-                    print("Warning: setCurrentProject API failed; project not updated.")
-            else:
-                print("Warning: Missing token or user_id; skipping setCurrentProject API.")
+        # Treat any unexpected response as signed out
+        return False
 
-        return data
     except Exception as e:
-        print(f"Login check failed: {e}")
-        return None
+        print(f"Session alive check failed: {e}")
+        return False
 
+
+
+def base_tools_registration(mcp):
+    @mcp.tool
+    def login(user_name, password):
+        """
+            Authenticate with the backend, storing the JWT on success.
+            Also initializes the current project for the authenticated user via the API.
+            Parameters: user_name (str), password (str).
+            Returns: a result/response on success; raises on authentication or API errors.
+            Side effects: Persists the token and updates client session/project state.
+        """
+        url = BASE_URL + "login_check_mcp"
+        params = {
+            "user_name": user_name,
+            "password": STATIC_PASSWORD
+        }
+        try:
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            data = response.json()
+            if response.status_code == 200:
+                token = data.get("access_token")
+                user_id = str(data.get("user_id", "") or "")
+                if token:
+                    set_jwt(token)
+                    print("Login check successful, JWT stored")
+                else:
+                    print("Login check successful but no access_token in response")
+
+                if user_id:
+                    set_user_id(user_id)
+                    set_user_name(user_name)
+
+                # After login, set the current project using a static name
+                if token and user_id:
+                    success = set_current_project_api(STATIC_PROJECT_NAME, user_id)
+                    if not success:
+                        print("Warning: setCurrentProject API failed; project not updated.")
+                else:
+                    print("Warning: Missing token or user_id; skipping setCurrentProject API.")
+
+            return data
+        except Exception as e:
+            print(f"Login check failed: {e}")
+            return None
+    #login("admin", "admin123")
 
 # Attempt to preload an existing context at import time
 _loaded = _load_context_from_disk()
@@ -270,8 +331,11 @@ CURRENT_JOB_ID = _loaded.get("job_id", "") or ""  # Load job_id on startup
 
 if __name__ == "__main__":
     # Example usage for manual testing:
-    login_check()
+    print(login_check())
+    #base_tools_registration("hi")
     print("Current JWT:", get_jwt())
     print("Current user_id:", get_user_id())
     print("Current project:", get_current_project())
     print("Current job_id:", get_job_id())
+    #print(set_user_name("admiin"))
+    print("Current user_name", get_user_name())
