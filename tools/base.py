@@ -329,6 +329,115 @@ USER_ID = str(_loaded.get("user_id", "") or "")
 CURRENT_PROJECT = _loaded.get("current_project", "") or ""
 CURRENT_JOB_ID = _loaded.get("job_id", "") or ""  # Load job_id on startup
 
+
+def get_execution_logs(
+        unique_id: str,
+        execution_id: str | None = None,
+        limit: int = 500,
+        batch: str = "false"
+) -> str:
+    """
+    Fetches real-time execution logs for a Playwright/script generation run.
+
+    Retrieves logs (steps, actions, errors, screenshots info etc.) and optional
+    shLog (shell/command output HTML if available).
+
+    Main parameters:
+    ┌────────────────┬──────────────────────────────────────────────────────────────┐
+    │ Parameter      │ Description                                                  │
+    ├────────────────┼──────────────────────────────────────────────────────────────┤
+    │ unique_id      │ Required - The unique identifier of the execution run        │
+    │                │ (usually returned when starting script generation)           │
+    ├────────────────┼──────────────────────────────────────────────────────────────┤
+    │ execution_id   │ Optional - Specific execution ID (currExecutionId)           │
+    │                │ If not provided, falls back to unique_id                     │
+    ├────────────────┼──────────────────────────────────────────────────────────────┤
+    │ limit          │ Max number of log entries to return (1–1000)                 │
+    │                │ Default: 500                                                 │
+    ├────────────────┼──────────────────────────────────────────────────────────────┤
+    │ batch          │ "true" or "false" - batch mode handling                      │
+    │                │ Usually keep as "false" for single script runs               │
+    └────────────────┴──────────────────────────────────────────────────────────────┘
+
+    Returns:
+        Formatted string containing:
+        - Number of log entries found
+        - Recent logs (most useful/recent entries)
+        - Any shell/command output (shLog) if present
+        - Or error message if the request failed
+
+    Example usage:
+        get_execution_logs("auto-12345-1-1739456789", limit=200)
+        get_execution_logs(unique_id="exec-abc123", execution_id="456", batch="false")
+    """
+    try:
+        headers = get_auth_headers()
+        if not headers:
+            return "Cannot fetch logs - authentication headers missing"
+
+        params = {
+            "uniqueId": unique_id,
+            "limit": str(limit),
+            "batch": batch
+        }
+
+        if execution_id:
+            params["currExecutionId"] = execution_id
+
+        response = requests.get(
+            BASE_URL + "get_execution_logs",
+            params=params,
+            headers=headers,
+            timeout=20
+        )
+
+        response.raise_for_status()
+        data = response.json()
+
+        if not data.get("success"):
+            return f"API reported failure: {data.get('error', 'Unknown error')}"
+
+        logs = data.get("logs", [])
+        shlog = data.get("shLog", "")
+
+        # Prepare nice output
+        result_lines = []
+
+        result_lines.append(f"Execution logs for unique_id: {unique_id}")
+        if execution_id:
+            result_lines.append(f"  (specific execution_id: {execution_id})")
+
+        result_lines.append(f"Total log entries received: {len(logs)}")
+        result_lines.append(f"Limit requested: {limit}\n")
+
+        if logs:
+            result_lines.append("Recent logs (newest first):")
+            # Show last 8-12 lines for readability, or all if few
+            display_count = min(12, len(logs))
+            for log in logs[-display_count:]:
+                timestamp = log.get("timestamp", "—")
+                level = log.get("level", "INFO").ljust(7)
+                message = log.get("message", "").strip()
+                result_lines.append(f"[{timestamp}] {level} {message}")
+            if len(logs) > display_count:
+                result_lines.append(f"... ({len(logs) - display_count} more entries)")
+        else:
+            result_lines.append("No log entries found yet.")
+
+        if shlog and shlog.strip():
+            result_lines.append("\nShell/Command output (shLog):")
+            result_lines.append("-" * 60)
+            # Limit shlog preview too (first ~1000 chars)
+            preview = shlog[:1200] + ("..." if len(shlog) > 1200 else "")
+            result_lines.append(preview)
+
+        return "\n".join(result_lines)
+
+    except requests.exceptions.RequestException as e:
+        return f"Failed to fetch execution logs (network/API error): {str(e)}"
+    except Exception as e:
+        return f"Unexpected error while getting logs: {str(e)}"
+
 if __name__ == "__main__":
     # Example usage for manual testing:
     print(login_check())
