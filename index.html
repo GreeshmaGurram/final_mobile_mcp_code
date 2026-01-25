@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Automation Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 20px;
+            height: calc(100vh - 40px);
+        }
+
+        .chat-section {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.incoming {
+            justify-content: flex-start;
+        }
+
+        .message.outgoing {
+            justify-content: flex-end;
+        }
+
+        .message-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .message.incoming .message-icon {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin-right: 12px;
+        }
+
+        .message.outgoing .message-icon {
+            background: #e0e0e0;
+            margin-left: 12px;
+            order: 2;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 15px 20px;
+            border-radius: 18px;
+            line-height: 1.5;
+        }
+
+        .message.incoming .message-content {
+            background: white;
+            color: #333;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .message.outgoing .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .status-section {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
+            padding: 25px;
+        }
+
+        .status-header {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .status-card {
+            background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .status-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .progress-container {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .progress-bar {
+            transition: all 0.6s ease;
+        }
+
+        .progress-bar.in-progress {
+            width: 100% !important;                  /* always full width */
+            background: linear-gradient(
+                90deg,
+                #f6e05e 0%,     /* light yellow */
+                #d69e2e 30%,    /* deeper amber/yellow */
+                #f6e05e 50%,    /* back to light */
+                #d69e2e 70%,
+                #f6e05e 100%
+            );
+            background-size: 300% 100%;              /* wide enough for smooth flow */
+            animation: runningYellow 3.2s linear infinite;
+            box-shadow: 0 0 12px rgba(246, 224, 94, 0.65);
+        }
+
+        /* The flowing animation — moves left to right endlessly */
+        @keyframes runningYellow {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -100% 0;
+            }
+        }
+
+        .progress-bar.completed {
+            background: linear-gradient(90deg, #48bb78, #2f855a);
+            box-shadow: 0 0 8px rgba(72, 187, 120, 0.5);
+        }
+
+        .status-text {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 15px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .status-not-started {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .status-in-progress {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .test-cases {
+            margin-top: 15px;
+        }
+
+        .test-case-item {
+            background: white;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            font-size: 14px;
+            color: #555;
+            transition: background 0.2s ease;
+        }
+
+        .test-case-item:hover {
+            background: #f0f0ff;
+        }
+
+        .chat-input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .chat-input:focus {
+            border-color: #667eea;
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .send-button:hover {
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .chat-section {
+                height: 500px;
+            }
+        }
+
+        /* ── Accordion for test cases ──────────────────────────────────────── */
+
+        .test-cases-container {
+            margin-top: 16px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        }
+
+        .view-test-cases-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 18px;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .view-test-cases-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.55);
+        }
+
+        .view-test-cases-btn svg {
+            transition: transform 0.4s ease;
+        }
+
+        .accordion-item {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .accordion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.04);
+            cursor: pointer;
+            transition: background 0.25s ease;
+            user-select: none;
+        }
+
+        .accordion-header:hover {
+            background: rgba(255, 255, 255, 0.09);
+        }
+
+        .accordion-header.active {
+            background: rgba(102, 126, 234, 0.15);
+        }
+
+        .accordion-title {
+            font-weight: 600;
+            color: #e2e8f0;
+            font-size: 15px;
+        }
+
+        .accordion-chevron {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .accordion-header.active .accordion-chevron {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                        padding 0.4s ease;
+            background: rgba(30, 41, 59, 0.4);
+        }
+
+        .accordion-content.active {
+            max-height: 1200px;   /* large enough for most test cases */
+            padding: 18px;
+        }
+
+        .steps-list {
+            list-style: none;
+            color: #232323;
+            font-size: 13px;
+            line-height: 1;
+        }
+
+        .steps-list li {
+            position: relative;
+            padding-left: 32px;
+            margin-bottom: 12px;
+        }
+
+        .steps-list li::before {
+            content: counter(step) ".";
+            counter-increment: step;
+            position: absolute;
+            left: 0;
+            color: #a5b4fc;
+            font-weight: 600;
+            width: 24px;
+            text-align: right;
+        }
+        #viewTestCasesEye {
+            opacity: 0.7;
+            transition: all 0.25s ease;
+        }
+
+        #viewTestCasesEye:hover {
+            opacity: 1;
+            transform: scale(1.15);
+        }
+        .accordion-header {
+            background: rgba(255, 255, 255, 0.92) !important;
+            border-bottom: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .accordion-title {
+            color: #1e293b !important;          /* dark slate text */
+            font-weight: 700;
+        }
+
+        .accordion-title small {
+            color: #475569 !important;          /* medium gray */
+        }
+
+        .accordion-chevron {
+            stroke: #64748b !important;
+        }
+
+        .accordion-content.active {
+            background: #ffffff !important;
+            color: #1e293b !important;
+        }
+        /* Glassmorphic container – more compact */
+        .glass-card {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 14px;
+            padding: 16px;                    /* ↓ reduced from 20px */
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            color: #e2e8f0;
+        }
+
+        /* Review accordion header – smaller & tighter */
+        .review-accordion-header {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.1));
+            padding: 12px 16px;               /* ↓ reduced */
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.25s ease;
+        }
+
+        .review-accordion-header:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(139, 92, 246, 0.25));
+            transform: translateY(-1px);
+        }
+
+        .review-accordion-header.active {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .review-case-title {
+            font-weight: 700;
+            font-size: 14px;                  /* ↓ smaller from 16px */
+            color: #c7d2fe;
+        }
+
+        .review-case-meta {
+            font-size: 12px;                  /* ↓ smaller */
+            opacity: 0.75;
+            margin-top: 2px;
+        }
+
+        /* Review tabs – smaller & less padding */
+        .review-tabs {
+            display: flex;
+            overflow-x: auto;
+            gap: 8px;                         /* ↓ tighter */
+            padding: 8px 0;                   /* ↓ reduced */
+            scrollbar-width: thin;
+        }
+
+        .review-tab {
+            padding: 6px 14px;                /* ↓ smaller */
+            background: rgba(255, 255, 255, 0.07);
+            border-radius: 40px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-size: 13px;                  /* ↓ smaller text */
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .review-tab.active {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 3px 12px rgba(99, 102, 241, 0.35);
+        }
+
+        /* Score ring – smaller size */
+        .review-score-ring {
+            position: relative;
+            width: 48px;                      /* ↓ from 60px */
+            height: 48px;
+            margin-left: auto;
+        }
+
+        .review-score-ring svg {
+            transform: rotate(-90deg);
+        }
+
+        .review-score-circle-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.12);
+            stroke-width: 5;                  /* slightly thinner */
+        }
+
+        .review-score-circle {
+            fill: none;
+            stroke-linecap: round;
+            stroke-width: 5;
+            transition: stroke-dashoffset 0.6s ease;
+        }
+
+        .review-score-text {
+            position: absolute;
+            top: 60%;
+            left: 62%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        /* Review content area – tighter padding */
+        .review-details {
+            background: rgba(15, 23, 42, 0.65);
+            border-radius: 10px;
+            padding: 14px;                    /* ↓ reduced from 20px */
+            animation: fadeIn 0.4s ease;
+        }
+
+        /* Steps list – more compact */
+        .review-step-list {
+            list-style: none;
+            counter-reset: step;
+            padding-left: 0;
+            margin: 6px 0 0 0;
+        }
+
+        .review-step-list li {
+            position: relative;
+            padding-left: 32px;               /* ↓ reduced from 40px */
+                           /* ↓ tighter */
+            color: #e2e8f0;
+            font-size: 13px;                  /* ↓ smaller font */
+            line-height: 1.45;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="chat-section">
+            <div class="chat-header">Test Automation Assistant</div>
+            <div class="chat-messages" id="chatMessages">
+
+            </div>
+            <div class="chat-input-area">
+                <input type="text" class="chat-input" placeholder="Type your message here..." id="messageInput">
+                <button class="send-button" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+
+        <div class="status-section">
+            <div class="status-header">Automation Pipeline Status</div>
+
+            <div class="status-card" id="generation-card">
+                <div class="card-title">1. Functional Step Generation</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: 100%;height: 100%;"></div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span class="status-text status-not-started" id="generation-status">Not Started</span>
+                    <button id="viewTestCasesEye" title="View generated test cases" style="display:none; background:none; border:none; cursor:pointer; font-size:18px; margin-bottom: 20px;">
+                        👁️
+                    </button>
+                </div>
+
+                <!-- Hidden container for accordion -->
+                <div id="testCasesWrapper" style="display:none; margin-top:16px;">
+                    <div class="test-cases-container" id="testCasesAccordion"></div>
+                </div>
+            </div>
+
+            <div class="status-card" id="review-card">
+                <div class="card-title">2. Steps Review</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: 0%; height: 100%;"></div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px; margin: 12px 0;">
+                    <span class="status-text status-not-started" id="review-status">Not Started</span>
+                    <button id="viewReviewEye" title="View review details" style="display:none; background:none; border:none; cursor:pointer; font-size:20px; margin-block-end:auto">
+                        👁️
+                    </button>
+                </div>
+
+                <!-- Hidden container for review content -->
+                <div id="reviewWrapper" style="display:none; margin-top:16px;">
+                    <div class="review-container glass-card" id="reviewContentArea">
+                        <!-- Accordions will be dynamically inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-card">
+                <div class="card-title">3. Refinement</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: 100%;height: 100%;"></div>
+                </div>
+                <span class="status-text status-not-started">Not Started</span>
+                <div class="test-cases">
+                    <div class="test-case-item">⭘ Awaiting review completion</div>
+                </div>
+            </div>
+
+            <div class="status-card">
+                <div class="card-title">4. Script Generation</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: 100%;height: 100%;"></div>
+                </div>
+                <span class="status-text status-not-started">Not Started</span>
+                <div class="test-cases">
+                    <div class="test-case-item">⭘ Pending refinement</div>
+                </div>
+            </div>
+
+            <div class="status-card">
+                <div class="card-title">5. Script Execution</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: 100%;height: 100%;"></div>
+                </div>
+                <span class="status-text status-not-started">Not Started</span>
+                <div class="test-cases">
+                    <div class="test-case-item">⭘ Awaiting script generation</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ── State ────────────────────────────────────────────────────────────────
+        let currentJobId = null;
+        let statusInterval = null;
+        let testCasesRendered = false;
+        let testCasesData = null;
+
+        // ── Helpers ──────────────────────────────────────────────────────────────
+        function addMessage(sender, text, isHtml = false) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender === 'bot' ? 'incoming' : 'outgoing'}`;
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            if (isHtml) {
+                contentDiv.innerHTML = text;
+            } else {
+                contentDiv.textContent = text;
+            }
+
+            const iconDiv = document.createElement('div');
+            iconDiv.className = 'message-icon';
+            iconDiv.textContent = sender === 'bot' ? '🤖' : '👤';
+
+            if (sender === 'bot') {
+                messageDiv.appendChild(iconDiv);
+                messageDiv.appendChild(contentDiv);
+            } else {
+                messageDiv.appendChild(contentDiv);
+                messageDiv.appendChild(iconDiv);
+            }
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function streamText(element, text, speed = 35) {
+            return new Promise(resolve => {
+                let i = 0;
+                const interval = setInterval(() => {
+                    if (i < text.length) {
+                        element.textContent += text.charAt(i);
+                        i++;
+                    } else {
+                        clearInterval(interval);
+                        resolve();
+                    }
+                }, speed);
+            });
+        }
+
+        async function showWelcomeMessage() {
+            const welcome = "Hello! I'm your test automation assistant. I can help you generate and execute test cases. What would you like to test today?";
+            const botMessageDiv = document.createElement('div');
+            botMessageDiv.className = 'message incoming';
+
+            const icon = document.createElement('div');
+            icon.className = 'message-icon';
+            icon.textContent = '🤖';
+
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            content.textContent = '';
+
+            botMessageDiv.appendChild(icon);
+            botMessageDiv.appendChild(content);
+            document.getElementById('chatMessages').appendChild(botMessageDiv);
+
+            await streamText(content, welcome);
+            document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+        }
+
+        // ── Status Polling ───────────────────────────────────────────────────────
+        async function startStatusPolling(jobId) {
+            if (statusInterval) clearInterval(statusInterval);
+
+            const statusUrl = `/status`;
+
+            statusInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(statusUrl);
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+                    const data = await res.json();
+                    updateStatusPanel(data);
+
+                    // Optional: stop when final stages are done
+                    if (
+                        data?.status?.Validation === "completed" &&
+                        data?.status?.["Script Generation"] === "completed" &&
+                        data?.status?.Execution === "completed"
+                    ) {
+                        clearInterval(statusInterval);
+                        statusInterval = null;
+                    }
+                } catch (err) {
+                    console.error("Status polling failed:", err);
+                }
+            }, 1400);
+        }
+
+        // ── Test Cases View Logic ────────────────────────────────────────────────
+        function toggleTestCasesView() {
+            const wrapper = document.getElementById('testCasesWrapper');
+            const eye = document.getElementById('viewTestCasesEye');
+
+            if (!wrapper || !eye) return;
+
+            if (wrapper.style.display === 'none' || wrapper.style.display === '') {
+                wrapper.style.display = 'block';
+                eye.textContent = '🙈';
+                eye.title = 'Hide test cases';
+            } else {
+                wrapper.style.display = 'none';
+                eye.textContent = '👁️';
+                eye.title = 'View generated test cases';
+            }
+        }
+
+        function renderTestCasesAccordion(allTestCases, testSteps) {
+            const container = document.getElementById('testCasesAccordion');
+            if (!container) {
+                console.error("Container #testCasesAccordion not found");
+                return;
+            }
+
+            container.innerHTML = '';
+
+            // Use Object.entries on all_test_cases (metadata)
+            Object.entries(allTestCases || {}).forEach(([tcKey, tc]) => {
+                console.log(`Rendering test case: ${tcKey}`, tc);
+
+                const item = document.createElement('div');
+                item.className = 'accordion-item';
+
+                const header = document.createElement('div');
+                header.className = 'accordion-header';
+                header.innerHTML = `
+                    <span class="accordion-title">
+                        ${tc.test_case_name || tcKey}
+                        <small style="opacity:0.7; margin-left:8px;">(${tc.test_description || 'No description'})</small>
+                    </span>
+                    <svg class="accordion-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                `;
+
+                const content = document.createElement('div');
+                content.className = 'accordion-content';
+
+                // Get steps from the separate test_steps object using the same key
+                const stepsData = testSteps?.[tcKey] || {};
+                const stepsText = stepsData.test_steps || stepsData.steps || '';
+                const lines = stepsText.split('\n').filter(line => line.trim());
+
+                if (lines.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.textContent = "No steps available yet";
+                    empty.style.padding = "16px";
+                    empty.style.color = "#f87171";
+                    empty.style.fontStyle = "italic";
+                    content.appendChild(empty);
+                } else {
+                    const stepsList = document.createElement('ol');
+                    stepsList.className = 'steps-list';
+                    stepsList.style.counterReset = 'step';
+
+                    lines.forEach(step => {
+                        const li = document.createElement('li');
+                        li.textContent = step.trim();
+                        stepsList.appendChild(li);
+                    });
+                    content.appendChild(stepsList);
+                }
+
+                // Toggle on click
+                header.addEventListener('click', () => {
+                    const isActive = header.classList.toggle('active');
+                    content.classList.toggle('active', isActive);
+                });
+
+                item.appendChild(header);
+                item.appendChild(content);
+                container.appendChild(item);
+            });
+
+            // Auto-expand first item
+            if (container.children.length > 0) {
+                const firstHeader = container.querySelector('.accordion-header');
+                if (firstHeader) firstHeader.click();
+            }
+        }
+
+        // ── Main status update logic ─────────────────────────────────────────────
+        function updateStatusPanel(data) {
+            try {
+                const cards = document.querySelectorAll('.status-card');
+                const stages = [
+                    { title: "Functional Step Generation", key: "Generation" },
+                    { title: "Steps Review",              key: "Review" },
+                    { title: "Refinement",                key: "Feedback" },
+                    { title: "Script Generation",         key: "Validation" },
+                    { title: "Script Execution",          key: "Execution" }
+                ];
+
+                stages.forEach((stage, i) => {
+                    const card = cards[i];
+                    if (!card) return;
+
+                    const statusValue = data?.status?.[stage.key] || "unknown";
+                    const progress = card.querySelector('.progress-bar');
+                    const label    = card.querySelector('.status-text');
+
+                    let pct = 0;
+                    let statusClass = 'not-started';
+                    let txt = 'Not Started';
+
+                    if (statusValue === 'completed') {
+                        pct = 100;
+                        statusClass = 'completed';
+                        txt = 'Completed';
+                    } else if (statusValue === 'in_progress') {
+                        pct = 60;
+                        statusClass = 'in-progress';
+                        txt = 'In Progress';
+                    }
+
+                    progress.style.width = `${pct}%`;
+                    progress.classList.remove('not-started', 'in-progress', 'completed');
+                    progress.classList.add(statusClass);
+
+                    label.className = `status-text status-${statusClass}`;
+                    label.textContent = txt;
+                });
+
+                // ── Generation test cases logic (unchanged)
+                const generationStatus = data?.status?.Generation;
+                const allTestCases = data?.all_test_cases;
+                const testSteps = data?.test_steps || {};
+                const eyeBtn = document.getElementById('viewTestCasesEye');
+                const wrapper = document.getElementById('testCasesWrapper');
+
+                if (generationStatus === 'completed' && allTestCases && Object.keys(allTestCases).length > 0) {
+                    if (eyeBtn) eyeBtn.style.display = 'inline-block';
+
+                    if (!testCasesRendered) {
+                        testCasesData = allTestCases;
+                        renderTestCasesAccordion(allTestCases, testSteps);
+                        testCasesRendered = true;
+                    }
+                } else {
+                    if (eyeBtn) eyeBtn.style.display = 'none';
+                    if (wrapper) wrapper.style.display = 'none';
+                    testCasesRendered = false;
+                }
+
+                // ── Review stage – SHOW EYE + FETCH when completed
+                const reviewStatus = data?.status?.Review;
+                const eyeBtn_review = document.getElementById('viewReviewEye');
+                const wrapper_review = document.getElementById('reviewWrapper');
+
+                if (reviewStatus === 'completed') {
+                    if (eyeBtn_review) {
+                        eyeBtn_review.style.display = 'inline-block';
+                    }
+
+                    // Fetch and render reviews **once** when stage completes
+                    if (!reviewsRendered) {
+                        fetchAndRenderReviews();   // ← This is the key line that was missing
+                        reviewsRendered = true;
+                    }
+                } else {
+                    if (eyeBtn_review) eyeBtn_review.style.display = 'none';
+                    if (wrapper_review) wrapper_review.style.display = 'none';
+                    reviewsRendered = false;
+                    currentReviewsData = null;
+                }
+
+            } catch (e) {
+                console.warn("Could not update status panel:", e);
+            }
+        }
+
+        // ── Send user message ────────────────────────────────────────────────────
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            addMessage('user', message);
+            input.value = '';
+
+            try {
+                const res = await fetch('/start-generation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_input: message })
+                });
+
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+                const result = await res.json();
+
+                if (result.success && result.job_id) {
+                    currentJobId = result.job_id;
+                    addMessage('bot', `Job started! Job ID: **${result.job_id}**`, true);
+                    startStatusPolling(result.job_id);
+                } else {
+                    addMessage('bot', `Error: ${result.error || 'Failed to start job'}`);
+                }
+            } catch (err) {
+                addMessage('bot', `Connection error: ${err.message}`);
+            }
+        }
+
+        // ── Initialization ───────────────────────────────────────────────────────
+        window.addEventListener('load', async () => {
+            // Welcome message — only once
+            await showWelcomeMessage();
+            document.getElementById('messageInput').focus();
+
+            // Eye button listener — only once
+            const eye = document.getElementById('viewTestCasesEye');
+            if (eye) {
+                eye.addEventListener('click', toggleTestCasesView);
+
+            }
+
+            const reviewEye = document.getElementById('viewReviewEye');
+            if (reviewEye) {
+                reviewEye.addEventListener('click', toggleReviewView);
+            }
+        });
+
+        // Enter key support
+        document.getElementById('messageInput').addEventListener('keypress', e => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+
+        let reviewsRendered = false;
+        let currentReviewsData = null; // cache the reviews so we don't re-fetch every time
+
+        // ── Toggle review wrapper visibility
+        function toggleReviewView() {
+            const wrapper = document.getElementById('reviewWrapper');
+            const eye = document.getElementById('viewReviewEye');
+
+            if (!wrapper || !eye) return;
+
+            if (wrapper.style.display === 'none' || wrapper.style.display === '') {
+                wrapper.style.display = 'block';
+                eye.textContent = '🙈';
+                eye.title = 'Hide review details';
+            } else {
+                wrapper.style.display = 'none';
+                eye.textContent = '👁️';
+                eye.title = 'View review details';
+            }
+        }
+
+        // ── Fetch reviews from backend (called when Review completes)
+        async function fetchAndRenderReviews() {
+            const jobId = currentJobId; // must be set when job starts
+            if (!jobId) {
+                console.error("No currentJobId available — cannot fetch reviews");
+                return;
+            }
+
+            try {
+                const response = await fetch('/getReviews', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // Add Authorization if your /getReviews endpoint requires it
+                        // 'Authorization': `Bearer ${jwtToken}`
+                    },
+                    body: JSON.stringify({
+                        job_id: jobId,
+                        sequence_number: 2  // review stage
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (result.error) {
+                    console.error("Backend returned error:", result.error);
+                    document.getElementById('reviewContentArea').innerHTML =
+                        `<p style="color:#fca5a5; padding:20px;">Failed to load reviews: ${result.error}</p>`;
+                    return;
+                }
+
+                const reviews = result.reviews || {};
+                if (Object.keys(reviews).length === 0) {
+                    document.getElementById('reviewContentArea').innerHTML =
+                        '<p style="opacity:0.7; padding:20px; text-align:center;">No reviews available yet.</p>';
+                    return;
+                }
+
+                currentReviewsData = reviews;
+                renderReviews(reviews);
+
+            } catch (err) {
+                console.error("Failed to fetch reviews:", err);
+                document.getElementById('reviewContentArea').innerHTML =
+                    `<p style="color:#fca5a5; padding:20px;">Error loading reviews: ${err.message}</p>`;
+            }
+        }
+
+        // ── Render function (unchanged from your version)
+        function renderReviews(reviewsData) {
+            const container = document.getElementById('reviewContentArea');
+            if (!container) return;
+
+            container.innerHTML = ''; // clear previous content
+
+            Object.entries(reviewsData).forEach(([testCaseId, testCase]) => {
+                const reviews = testCase.reviews || [];
+                if (reviews.length === 0) return;
+
+                const highestScore = Math.max(...reviews.map(r => r.review_score || 0));
+                const scoreColor = highestScore >= 90 ? '#10b981' :
+                                  highestScore >= 70 ? '#f59e0b' : '#ef4444';
+
+                const item = document.createElement('div');
+                item.className = 'review-accordion-item';
+
+                const header = document.createElement('div');
+                header.className = 'review-accordion-header';
+                header.innerHTML = `
+                    <div>
+                        <div class="review-case-title">${testCase.reviews[0]?.test_name || testCaseId}</div>
+                        <div class="review-case-meta">${testCase.reviews[0]?.description || 'No description'}</div>
+                    </div>
+                    <div class="review-score-ring">
+                        <svg width="60" height="60">
+                            <circle class="review-score-circle-bg" cx="30" cy="30" r="27"></circle>
+                            <circle class="review-score-circle" cx="30" cy="30" r="27"
+                                    stroke="${scoreColor}"
+                                    stroke-dasharray="169.646"
+                                    stroke-dashoffset="${169.646 * (1 - highestScore/100)}"></circle>
+                        </svg>
+                        <div class="review-score-text" style="color:${scoreColor}">${highestScore}%</div>
+                    </div>
+                `;
+
+                const content = document.createElement('div');
+                content.className = 'review-content';
+                content.style.display = 'none';
+
+                const tabs = document.createElement('div');
+                tabs.className = 'review-tabs';
+                reviews.forEach((review, idx) => {
+                    const tab = document.createElement('div');
+                    tab.className = `review-tab ${idx === 0 ? 'active' : ''}`;
+                    tab.textContent = `Review #${review.review_no || (idx + 1)}`;
+                    tab.dataset.reviewIdx = idx;
+                    tabs.appendChild(tab);
+                });
+
+                const details = document.createElement('div');
+                details.className = 'review-details';
+                details.innerHTML = generateReviewDetails(reviews[0]);
+
+                content.appendChild(tabs);
+                content.appendChild(details);
+
+                // Tab switching
+                tabs.addEventListener('click', e => {
+                    const tab = e.target.closest('.review-tab');
+                    if (!tab) return;
+                    tabs.querySelectorAll('.review-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    const idx = parseInt(tab.dataset.reviewIdx);
+                    details.innerHTML = generateReviewDetails(reviews[idx]);
+                    details.style.animation = 'fadeIn 0.5s ease';
+                });
+
+                // Accordion toggle
+                header.addEventListener('click', () => {
+                    const isOpen = content.style.display !== 'none';
+                    content.style.display = isOpen ? 'none' : 'block';
+                    header.classList.toggle('active', !isOpen);
+                });
+
+                item.appendChild(header);
+                item.appendChild(content);
+                container.appendChild(item);
+
+                // Auto-open first review accordion
+                if (container.children.length === 1) {
+                    header.click();
+                }
+            });
+        }
+
+        // Helper: generate review details HTML
+        function generateReviewDetails(review) {
+            const steps = (review.steps || '').split('\n').filter(s => s.trim());
+            const stepsHtml = steps.map((s, i) => `<li class="review-step-list">${i + 1}. ${s.trim()}</li>`).join('');
+
+            return `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h4 style="margin: 0; color: #c7d2fe;">Review #${review.review_no || '?'}</h4>
+                    <span style="font-weight: bold; color: ${review.review_score >= 90 ? '#10b981' : '#f59e0b'}">
+                        Score: ${review.review_score || 0}%
+                    </span>
+                </div>
+                <p><strong>Test Name:</strong> ${review.test_name || 'N/A'}</p>
+                <p><strong>Description:</strong> ${review.description || 'No description'}</p>
+                <p><strong>Steps:</strong></p>
+                <ol class="review-step-list">${stepsHtml || '<li>No steps available</li>'}</ol>
+            `;
+        }
+    </script>
+</body>
+</html>

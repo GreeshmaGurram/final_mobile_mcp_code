@@ -11,6 +11,7 @@ from tools.generation_tools import generation_tools_registration
 from tools.feedback_tools import feedback_tools_registration
 import httpx
 
+from tools.playwright_script_generation_tools import playwright_generation_tools_registration
 from tools.script_execution_tools import script_execution_tools_registration
 from tools.script_generation_tools import script_generation_tools_registration
 
@@ -26,6 +27,7 @@ generation_tools_registration(mcp)
 script_generation_tools_registration(mcp)
 feedback_tools_registration(mcp)
 script_execution_tools_registration(mcp)
+playwright_generation_tools_registration(mcp)
 
 # Register prompt
 # @mcp.prompt()

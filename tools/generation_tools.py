@@ -84,4 +84,57 @@ def generation_tools_registration(mcp):
             return f"Failed to get status. Error: {str(e)}"
 
 
+def start_test_step_generation(user_input: str) -> str:
+    """
+    Triggers the start of test step generation by calling the /start API endpoint.
+    Stores the returned job_id for later reference across the MCP session.
+
+    Args:
+        user_input: The user Story.
+
+    Returns:
+        Success message with job_id or error message.
+    """
+    user_data = login_check()
+    if not user_data:
+        return "Failed to authenticate. Cannot start generation."
+
+    user_id = "admin"
+    headers = get_auth_headers()
+    access_token = get_jwt()
+    project_id = get_current_project()
+
+    if not user_id or not headers:
+        return "Authentication or user context missing. Cannot start generation."
+
+    url = BASE_URL + "start"
+    payload = {
+        "user_input": user_input,
+        "project_id": project_id,
+        "user_id": user_id,
+        "sequence_number": 1
+    }
+
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        response.raise_for_status()
+
+        # Parse the response to extract job_id
+        response_data = response.json()
+        job_id = response_data.get("job_id")
+
+        if job_id:
+            # Store the job_id in the persistent context
+            set_job_id(job_id)
+            return (f"Successfully started generation.\n"
+                    f"Job ID: {job_id}\n"
+                    f"Project ID: {response_data.get('project_id')}\n"
+                    f"User ID: {response_data.get('user_id')}\n"
+                    f"Job ID has been stored and can be referenced anywhere in the session.")
+        else:
+            return f"Generation started but no job_id in response. Response: {response.text}"
+
+    except requests.RequestException as e:
+        return f"Failed to start generation. Error: {str(e)}"
+
 
