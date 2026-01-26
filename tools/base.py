@@ -278,18 +278,18 @@ def login_check():
 
 def base_tools_registration(mcp):
     @mcp.tool
-    def login(user_name, password):
+    def login(user_name, password, project):
         """
             Authenticate with the backend, storing the JWT on success.
             Also initializes the current project for the authenticated user via the API.
-            Parameters: user_name (str), password (str).
+            Parameters: user_name (str), password (str), project(str).
             Returns: a result/response on success; raises on authentication or API errors.
             Side effects: Persists the token and updates client session/project state.
         """
         url = BASE_URL + "login_check_mcp"
         params = {
             "user_name": user_name,
-            "password": STATIC_PASSWORD
+            "password": password
         }
         try:
             response = requests.get(url, params=params)
@@ -310,7 +310,7 @@ def base_tools_registration(mcp):
 
                 # After login, set the current project using a static name
                 if token and user_id:
-                    success = set_current_project_api(STATIC_PROJECT_NAME, user_id)
+                    success = set_current_project_api(project, user_id)
                     if not success:
                         print("Warning: setCurrentProject API failed; project not updated.")
                 else:

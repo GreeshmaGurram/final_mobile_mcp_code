@@ -11,6 +11,7 @@ from tools.generation_tools import generation_tools_registration
 from tools.feedback_tools import feedback_tools_registration
 from tools.starter_tools import starter_tools_registration
 from tools.base import base_tools_registration
+from core.prompts import generation_agent_prompts
 import httpx
 
 from tools.script_execution_tools import script_execution_tools_registration
@@ -30,6 +31,7 @@ feedback_tools_registration(mcp)
 starter_tools_registration(mcp)
 base_tools_registration(mcp)
 script_execution_tools_registration(mcp)
+generation_agent_prompts(mcp)
 
 # Register prompt
 # @mcp.prompt()

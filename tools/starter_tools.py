@@ -179,6 +179,48 @@ def starter_tools_registration(mcp):
                 "status_code": None,
                 "error": str(e),
             }
+
+    @mcp.tool
+    def get_rag_testcases() -> dict:
+        """
+        Fetch RAG testcases for the current user.
+        No parameters required; sends 'userId' as a query parameter.
+        """
+        url = f"{(BASE_URL or '').rstrip('/')}/getRAGTestcases"
+        headers = get_auth_headers()
+        params = {
+            "userId": get_user_name()
+        }
+
+        try:
+            resp = requests.get(url, headers=headers, params=params, timeout=30)
+            if 200 <= resp.status_code < 300:
+                try:
+                    data = resp.json()
+                except Exception:
+                    data = {"text": resp.text}
+                return {
+                    "success": True,
+                    "status_code": resp.status_code,
+                    "data": data,
+                }
+            else:
+                try:
+                    error = resp.json()
+                except Exception:
+                    error = {"text": resp.text}
+                return {
+                    "success": False,
+                    "status_code": resp.status_code,
+                    "error": error,
+                }
+        except requests.RequestException as e:
+            return {
+                "success": False,
+                "status_code": None,
+                "error": str(e),
+            }
+    #print(get_rag_testcases())
     #print(add_project("newTestProject"))
     #print(add_user("maniiideep", "admin123","user", ["TestProject"] ))
 #starter_tools_registration("hi")

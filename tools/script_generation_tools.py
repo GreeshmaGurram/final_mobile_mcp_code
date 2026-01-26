@@ -285,3 +285,25 @@ def script_generation_tools_registration(mcp):
                 "error": "Unexpected error while processing execution logs",
                 "details": str(e)
             }
+
+    @mcp.tool
+    def user_input(user_input: str):
+        job_id = get_job_id()
+        headers = get_auth_headers()
+        try:
+            url_user_input = BASE_URL + f"/userInput/{job_id}"
+
+            user_input_payload = {
+                "user_input": user_input,  # or "refine" - please confirm which one you need
+            }
+
+            response = requests.post(url_user_input, json=user_input_payload, headers=headers)
+            response.raise_for_status()
+            user_input_data = response.json()
+            return user_input_data
+        except Exception as e:
+            return {
+                "success": False,
+                "error": "User Input Couldnt be sent",
+                "details": str(e)
+            }
