@@ -14,6 +14,7 @@ from tools.base import base_tools_registration
 from core.prompts import generation_agent_prompts
 import httpx
 
+from tools.playwright_script_generation_tools import playwright_generation_tools_registration
 from tools.script_execution_tools import script_execution_tools_registration
 from tools.script_generation_tools import script_generation_tools_registration
 
@@ -28,10 +29,7 @@ mcp = FastMCP("PhaseBasedMCP")
 generation_tools_registration(mcp)
 script_generation_tools_registration(mcp)
 feedback_tools_registration(mcp)
-starter_tools_registration(mcp)
-base_tools_registration(mcp)
 script_execution_tools_registration(mcp)
-generation_agent_prompts(mcp)
 
 # Register prompt
 # @mcp.prompt()

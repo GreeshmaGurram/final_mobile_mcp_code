@@ -176,6 +176,14 @@ def get_current_project() -> str:
     return CURRENT_PROJECT
 
 
+
+def get_project_path() -> str:
+    artefacts_path=os.getenv("ARTEFACTS_BASE")
+
+    return f"{artefacts_path}/{CURRENT_PROJECT}"
+
+
+
 def get_job_id() -> str:
     """
     Retrieve the job_id from memory, falling back to disk if necessary.
@@ -329,6 +337,22 @@ USER_ID = str(_loaded.get("user_id", "") or "")
 CURRENT_PROJECT = _loaded.get("current_project", "") or ""
 CURRENT_JOB_ID = _loaded.get("job_id", "") or ""  # Load job_id on startup
 
+
+def get_status() -> str:
+    """This Tool is used to receive status of the system, what agents and workflows have completed"""
+
+    url = BASE_URL + "status/" + str(get_job_id())
+    print(url)
+    # payload ={
+    #     "job_id": get_job_id()
+    # }
+    try:
+        response = requests.get(url, headers=get_auth_headers())
+        response.raise_for_status()
+        print(response.text)
+        return response.text
+    except requests.RequestException as e:
+        return f"Failed to get status. Error: {str(e)}"
 
 def get_execution_logs(
         unique_id: str,
