@@ -30,6 +30,10 @@ generation_tools_registration(mcp)
 script_generation_tools_registration(mcp)
 feedback_tools_registration(mcp)
 script_execution_tools_registration(mcp)
+starter_tools_registration(mcp)
+playwright_generation_tools_registration(mcp)
+base_tools_registration(mcp)
+generation_agent_prompts(mcp)
 
 # Register prompt
 # @mcp.prompt()

@@ -137,7 +137,7 @@ def generation_tools_registration(mcp):
         except requests.RequestException as e:
             return f"Failed to get status. Error: {str(e)}"
 
-    @mcp.tool()
+    #@mcp.tool()
     def get_generation_logs() -> str:
         """This Tool is used to receive status of the system, what agents and workflows have completed"""
 

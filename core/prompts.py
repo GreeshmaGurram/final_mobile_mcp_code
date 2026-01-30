@@ -29,6 +29,7 @@ def generation_agent_prompts(mcp):
     2. Store the returned `job_id` - this is critical for tracking
     3. Use `get_status` periodically to monitor progress
     4. Once generation is complete, use `get_feedback_details` with the job_id to retrieve generated test steps
+    5. In get Status you will find the review no this determines the no of reviews that have happened, once generation is complete, please inform the user about the no of reviews that have happend
 
     **PHASE 4: FEEDBACK & REFINEMENT**
     1. Show the generated test steps to the user
@@ -97,7 +98,9 @@ def generation_agent_prompts(mcp):
         2. Store the returned `job_id` - this is critical for tracking
         3. Use `get_status` periodically to monitor progress
         4. in get_status you should check for HITL flag if its true you will see a another variable called question, you should present it to the user and take response which should be sent via user_input tool
-        4. Once generation is complete, use `get_feedback_details` with the job_id to retrieve generated test steps
+        5. Once generation is complete, use `get_feedback_details` with the job_id to retrieve generated test steps
+        6. In get Status you will find the review no this determines the no of reviews that have happened, once generation is complete, please inform the user about the no of reviews that have happend
+
 
         **PHASE 4: FEEDBACK & REFINEMENT**
         1. Show the generated test steps to the user along with number of reviews and show them how many regenerations have happened

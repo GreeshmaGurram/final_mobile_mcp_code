@@ -328,7 +328,7 @@ def base_tools_registration(mcp):
         except Exception as e:
             print(f"Login check failed: {e}")
             return None
-    #login("admin", "admin123")
+     #login("admin", "admin123", "TestProject")
 
 # Attempt to preload an existing context at import time
 _loaded = _load_context_from_disk()

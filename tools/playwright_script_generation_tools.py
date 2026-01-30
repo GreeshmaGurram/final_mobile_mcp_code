@@ -131,3 +131,87 @@ def playwright_generation_tools_registration(mcp):
                 "stage": "convert_to_python",
                 "error": f"Unexpected error: {str(e)}"
             }
+
+    @mcp.tool()
+    def export_artefacts(project: str = None) -> dict:
+        """
+        Calls /export_artefacts to save artefacts ZIP on the server and returns the file name to the user.
+
+        Args:
+            project: Optional project name. If not provided, resolved from current context.
+
+        Returns:
+            dict with keys:
+            - success: bool
+            - file_name: str (always present on success)
+            - file_path: str (absolute path on the server, if provided by API)
+            - saved: bool (True if newly created, False if it already existed; if provided by API)
+            - error: str (when failed)
+            - stage: str (where it failed)
+        """
+        headers = get_auth_headers()
+        if not headers:
+            return {
+                "success": False,
+                "stage": "auth",
+                "error": "Authentication headers missing"
+            }
+
+        if not BASE_URL:
+            return {
+                "success": False,
+                "stage": "config",
+                "error": "BASE_URL is not configured"
+            }
+
+        proj = project or get_current_project()
+        if not proj:
+            return {
+                "success": False,
+                "stage": "input",
+                "error": "Project name not provided and could not be determined"
+            }
+
+        try:
+            resp = requests.post(
+                BASE_URL + "export_artefacts",
+                json={"project": proj},
+                headers=headers,
+                timeout=120
+            )
+            resp.raise_for_status()
+            data = resp.json()
+
+            file_name = data.get("file_name") or data.get("filename") or data.get("name")
+            if not file_name:
+                return {
+                    "success": False,
+                    "stage": "parse_response",
+                    "error": f"file_name not found in response: {data}"
+                }
+            file_path = f"{BASE_URL}download/{file_name}"
+            # Minimal contract: return filename to the user; path and saved are optional
+            return {
+                "success": True,
+                "file_name": file_name,
+                "file_path": file_path,
+                "saved": data.get("saved")
+            }
+
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "stage": "export_artefacts",
+                "error": f"API call failed: {str(e)}"
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "stage": "export_artefacts",
+                "error": f"Unexpected error: {str(e)}"
+            }
+    #print(export_artefacts())
+
+#s = playwright_generation_tools_registration("hi")
+
+
