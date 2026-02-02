@@ -30,6 +30,7 @@ def generation_agent_prompts(mcp):
     3. Use `get_status` periodically to monitor progress
     4. Once generation is complete, use `get_feedback_details` with the job_id to retrieve generated test steps
     5. In get Status you will find the review no this determines the no of reviews that have happened, once generation is complete, please inform the user about the no of reviews that have happend
+    6. Once review stage is complete you can go to next stage, it will show feedback as in progress but you can move to next stage
 
     **PHASE 4: FEEDBACK & REFINEMENT**
     1. Show the generated test steps to the user
@@ -100,6 +101,7 @@ def generation_agent_prompts(mcp):
         4. in get_status you should check for HITL flag if its true you will see a another variable called question, you should present it to the user and take response which should be sent via user_input tool
         5. Once generation is complete, use `get_feedback_details` with the job_id to retrieve generated test steps
         6. In get Status you will find the review no this determines the no of reviews that have happened, once generation is complete, please inform the user about the no of reviews that have happend
+        7. Once review stage is complete you can go to next stage, it will show feedback as in progress but you can move to next stage
 
 
         **PHASE 4: FEEDBACK & REFINEMENT**
@@ -108,7 +110,8 @@ def generation_agent_prompts(mcp):
         3. Collect user's feedback/updates
         4. Use `save_feedback_test_steps` with the updated steps
         5. This will trigger validation and generate test JSON
-        6. If the feedback save is successful please move to next phase and start generate_script_for_testcase
+        6. If the feedback save is successful 
+        7 now get the script details and show the test_json in a table format to the user 
 
         **PHASE 5: SCRIPT GENERATION**
         1. Use `generate_script_for_testcase` to start Playwright script generation

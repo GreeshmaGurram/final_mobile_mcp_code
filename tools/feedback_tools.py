@@ -67,8 +67,6 @@ def feedback_tools_registration(mcp):
     import os
     import requests
 
-    # Constants
-
     @mcp.tool()
     def save_feedback_test_steps(
             test_case_name: str,
@@ -223,5 +221,102 @@ def feedback_tools_registration(mcp):
             return f"Feedback saved but failed to send to validation (Continue): Network error. Error: {str(e)}"
         except Exception as e:
             return f"Feedback saved but failed to send to validation (Continue): Unexpected error. Error: {str(e)}"
+
+    @mcp.tool()
+    def get_script_details(test_case_id: int = 1) -> str:
+        """
+        Fetches script details from /script_details using the stored job_id and presents
+        the script JSON in an ASCII table format when possible.
+
+        Args:
+            test_case_id: ID of the test case to fetch script details for (default: 1)
+
+        Returns:
+            A string containing a formatted table or a pretty-printed JSON fallback.
+        """
+        headers = get_auth_headers()
+        if not headers:
+            return "Authentication headers missing. Cannot get script details."
+
+        job_id = get_job_id()
+        if not job_id:
+            return "No job_id found in session. Start generation first to obtain a job_id."
+
+        url = BASE_URL + "script_details"
+        payload = {
+            "job_id": job_id,
+            "test_case_id": test_case_id,
+        }
+
+        try:
+            response = requests.post(url, json=payload, headers=headers)
+            response.raise_for_status()
+            data = response.json()
+        except requests.HTTPError as e:
+            return f"Failed to get script details: HTTP error {e.response.status_code}. Response: {e.response.text}"
+        except requests.RequestException as e:
+            return f"Failed to get script details: Network error. Error: {str(e)}"
+        except Exception as e:
+            return f"Failed to get script details: Unexpected error. Error: {str(e)}"
+
+        # if data["baseline_json"]:
+        #     data["baseline_json"] = ""
+
+        # Fallback: pretty JSON
+        try:
+            import json
+            return json.dumps(data, ensure_ascii=False, indent=2)
+        except Exception as e:
+            return f"Failed to get script details: Unexpected error. Error: {str(e)}"
+
+    # New tool to send updated test JSON to the backend via /update_test_json.
+    # Place this alongside get_script_details in the same file.
+
+    @mcp.tool()
+    def update_test_json(test_json: str, test_name: str = None) -> str:
+        """
+        Sends the updated test JSON to /update_test_json using the stored job_id.
+
+        Args:
+            test_json: A JSON string containing the user/system updates to the test. follow the same format, no changes there
+            test_name: please give the exact test name you want to change.
+
+        Returns:
+            A pretty-printed JSON string of the backend response, or an error message.
+        """
+        headers = get_auth_headers()
+        if not headers:
+            return "Authentication headers missing. Cannot update test JSON."
+
+        job_id = get_job_id()
+        if not job_id:
+            return "No job_id found in session. Start generation first to obtain a job_id."
+
+        url = BASE_URL + "update_test_json"
+        params = {
+            "job_id": job_id,
+            "test_json": test_json,
+        }
+        if test_name:
+            params["test_name"] = test_name
+
+        try:
+            # Using GET as per server configuration: self.app.get('/update_test_json')(self._update_test_json)
+            response = requests.get(url, params=params, headers=headers)
+            response.raise_for_status()
+            data = response.json()
+        except requests.HTTPError as e:
+            return f"Failed to update test JSON: HTTP error {e.response.status_code}. Response: {e.response.text}"
+        except requests.RequestException as e:
+            return f"Failed to update test JSON: Network error. Error: {str(e)}"
+        except Exception as e:
+            return f"Failed to update test JSON: Unexpected error. Error: {str(e)}"
+
+        # Pretty JSON output for consistency with get_script_details
+        try:
+            import json
+            return json.dumps(data, ensure_ascii=False, indent=2)
+        except Exception as e:
+            return f"Failed to pretty-print response: {str(e)}"
 
 
