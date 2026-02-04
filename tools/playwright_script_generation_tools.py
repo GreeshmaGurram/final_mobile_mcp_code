@@ -94,7 +94,7 @@ def playwright_generation_tools_registration(mcp):
                 "project_path": str(project_path)  # convert Path to str if needed
             }
 
-            convert_response = requests.post(
+            convert_response = requests.get(
                 BASE_URL + "convert_json_to_python",
                 json=convert_payload,
                 headers=headers,

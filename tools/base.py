@@ -180,7 +180,7 @@ def get_current_project() -> str:
 def get_project_path() -> str:
     artefacts_path=os.getenv("ARTEFACTS_BASE")
 
-    return f"{artefacts_path}/{CURRENT_PROJECT}"
+    return f"{artefacts_path}/Main/{CURRENT_PROJECT}"
 
 
 

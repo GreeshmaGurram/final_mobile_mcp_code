@@ -94,7 +94,7 @@ def feedback_tools_registration(mcp):
         if refinement_text is "":
             refinement_text = "N/A"
         try:
-            url_ae = BASE_FRONTEND_URL + "getAETestcase_mcp"
+            url_ae = BASE_URL + "getAETestcase"
             if refinement_text is "":
                 refinement_text="N/A"
 
@@ -115,7 +115,7 @@ def feedback_tools_registration(mcp):
             }
 
             # Send as form data
-            response = requests.post(url_ae, data=form_data)
+            response = requests.post(url_ae, json=form_data, headers=get_auth_headers())
             response.raise_for_status()
 
             test_json = response.text

@@ -111,7 +111,7 @@ def generation_agent_prompts(mcp):
         4. Use `save_feedback_test_steps` with the updated steps
         5. This will trigger validation and generate test JSON
         6. If the feedback save is successful 
-        7 now get the script details and show the test_json in a table format to the user 
+        7 now get the script details and show the test_json in a table format to the user, show locators as well
 
         **PHASE 5: SCRIPT GENERATION**
         1. Use `generate_script_for_testcase` to start Playwright script generation
