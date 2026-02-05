@@ -116,7 +116,7 @@ def generation_tools_registration(mcp):
 
         if not user_id or not headers:
             return "Authentication or user context missing. Cannot start generation."
-        #Delete all jobs
+        # Delete all jobs
         try:
             get_all_jobs_url = BASE_URL + "jobs"
             params = {

@@ -25,6 +25,7 @@ USER_ID: str = ""
 USER_NAME: str = ""
 CURRENT_PROJECT: str = ""
 CURRENT_JOB_ID: str = ""  # Added for job_id tracking
+TEST_JSON: dict = {}
 
 # Persistent storage location: ~/.genwizard_mcp/jwt_token.json
 TOKEN_FILE = Path.home() / ".genwizard_mcp" / "jwt_token.json"
@@ -73,8 +74,18 @@ def _get_ctx() -> Dict[str, Any]:
         "user_id": USER_ID or "",
         "current_project": CURRENT_PROJECT or "",
         "job_id": CURRENT_JOB_ID or "",
-        "user_name": USER_NAME or ""
+        "user_name": USER_NAME or "",
+        "test_json": TEST_JSON or {}
     }
+
+def set_test_json(test_json: dict) -> None:
+    """
+    Set JWT in memory and persist it to disk.
+    """
+    global TEST_JSON
+    TEST_JSON = test_json or ""
+    ctx = _get_ctx()
+    _save_context_to_disk(ctx)
 
 
 def set_jwt(token: str) -> None:
@@ -127,6 +138,18 @@ def set_job_id(job_id: str) -> None:
     _save_context_to_disk(ctx)
     print(f"Job ID '{job_id}' stored and persisted.")
 
+
+def get_test_json() -> str:
+    """
+    Retrieve the JWT from memory, falling back to disk if necessary.
+    """
+    global TEST_JSON
+    if TEST_JSON:
+        return TEST_JSON
+    # Hydrate from disk
+    data = _load_context_from_disk()
+    TEST_JSON = data.get("test_json", "") or ""
+    return TEST_JSON
 
 def get_jwt() -> str:
     """
