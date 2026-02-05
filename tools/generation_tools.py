@@ -38,6 +38,34 @@ def generation_tools_registration(mcp):
         if not user_id or not headers:
             return "Authentication or user context missing. Cannot start generation."
 
+        # Delete all previous jobs
+        try:
+            get_all_jobs_url = BASE_URL + "jobs"
+            params = {
+                "project_id": project_id,
+                "user_id": user_id
+            }
+            get_jobs_response = requests.get(get_all_jobs_url, params=params, headers=headers)
+            get_jobs_response.raise_for_status()
+            jobs_data = get_jobs_response.json()
+            existing_jobs = jobs_data.get("jobs", [])
+            if existing_jobs:
+                for job in existing_jobs:
+                    job_id_to_delete = job.get("job_id")
+                    if job_id_to_delete:
+                        delete_job_url = BASE_URL + "deleteJob"
+                        delete_params = {
+                            "job_id": job_id_to_delete
+                        }
+                        delete_response = requests.get(delete_job_url, params=delete_params, headers=headers)
+                        delete_response.raise_for_status()
+                        print(f"Deleted job {job_id_to_delete}")
+            else:
+                print("No existing jobs to delete.")
+
+        except requests.RequestException as e:
+            print(f"Warning: Failed to delete existing jobs. Error: {str(e)}")
+
         url = BASE_URL + "start"
         payload = {
             "user_input": user_input,
@@ -88,6 +116,32 @@ def generation_tools_registration(mcp):
 
         if not user_id or not headers:
             return "Authentication or user context missing. Cannot start generation."
+        # Delete all jobs
+        try:
+            get_all_jobs_url = BASE_URL + "jobs"
+            params = {
+                "project_id": project_id,
+                "user_id": user_id
+            }
+            get_jobs_response = requests.get(get_all_jobs_url, params=params, headers=headers)
+            get_jobs_response.raise_for_status()
+            jobs_data = get_jobs_response.json()
+            existing_jobs = jobs_data.get("jobs", [])
+            if existing_jobs:
+                for job in existing_jobs:
+                    job_id_to_delete = job.get("job_id")
+                    if job_id_to_delete:
+                        delete_job_url = BASE_URL + "deleteJob"
+                        delete_params = {
+                            "job_id": job_id_to_delete
+                        }
+                        delete_response = requests.get(delete_job_url, params=delete_params, headers=headers)
+                        delete_response.raise_for_status()
+                        print(f"Deleted job {job_id_to_delete}")
+            else:
+                print("No existing jobs to delete.")
+        except requests.RequestException as e:
+            print(f"Warning: Failed to delete existing jobs. Error: {str(e)}")
 
         url = BASE_URL + "start"
         payload = {

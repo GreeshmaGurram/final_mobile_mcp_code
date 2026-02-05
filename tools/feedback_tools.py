@@ -4,7 +4,7 @@ import os
 
 from cryptography.hazmat.asn1.asn1 import sequence
 
-from tools.base import login_check, get_jwt, get_auth_headers, get_user_id, get_current_project, set_job_id, get_job_id
+from tools.base import login_check, get_jwt, get_auth_headers, get_user_id, get_current_project, set_job_id, get_job_id, get_test_json, set_test_json
 
 BASE_URL = os.getenv("BASE_URL")
 SELECTED_APPLICATION = "General"
@@ -252,6 +252,8 @@ def feedback_tools_registration(mcp):
             response = requests.post(url, json=payload, headers=headers)
             response.raise_for_status()
             data = response.json()
+            set_test_json(data)
+            print(data)
         except requests.HTTPError as e:
             return f"Failed to get script details: HTTP error {e.response.status_code}. Response: {e.response.text}"
         except requests.RequestException as e:
