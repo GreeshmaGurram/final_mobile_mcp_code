@@ -340,7 +340,7 @@ CURRENT_JOB_ID = _loaded.get("job_id", "") or ""  # Load job_id on startup
 
 def get_status() -> str:
     """This Tool is used to receive status of the system, what agents and workflows have completed"""
-
+    #add the screenshot url
     url = BASE_URL + "status/" + str(get_job_id())
     print(url)
     # payload ={
