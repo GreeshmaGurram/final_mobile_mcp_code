@@ -1,7 +1,7 @@
 import mcp
 import requests
 import os
-
+import json
 from cryptography.hazmat.asn1.asn1 import sequence
 
 from tools.base import login_check, get_jwt, get_auth_headers, get_user_id, get_current_project, set_job_id, get_job_id, get_test_json, set_test_json
@@ -9,6 +9,65 @@ from tools.base import login_check, get_jwt, get_auth_headers, get_user_id, get_
 BASE_URL = os.getenv("BASE_URL")
 SELECTED_APPLICATION = "General"
 BASE_FRONTEND_URL = os.getenv("BASE_FRONTEND_URL", "http://localhost:8082/Quality_Engineering_Agents/ai/")
+
+def add_temp_numbers_to_script(script):
+    events = script["test_json"]["eventsList"]
+    steps = script["test_json"]["steps"]
+
+    for i, e in enumerate(events):
+        e["_tempNo"] = i
+
+    for i, s in enumerate(steps):
+        s["_tempNo"] = i
+
+    return script
+
+
+def delete_and_recompute_script(
+    script,
+    delete_event_temp_nos,
+    delete_step_temp_nos
+):
+    # --- EVENTS ---
+    events = script["test_json"]["eventsList"]
+    events = [e for e in events if e.get("_tempNo") not in delete_event_temp_nos]
+
+    # Recompute event stepNo
+    new_step = -1
+    last_original = None
+    for e in events:
+        if e["stepNo"] != last_original:
+            new_step += 1
+            last_original = e["stepNo"]
+        e["stepNo"] = new_step
+
+    # --- STEPS ---
+    steps = script["test_json"]["steps"]
+    steps = [s for s in steps if s.get("_tempNo") not in delete_step_temp_nos]
+
+    # Recompute steps stepNo
+    for i, s in enumerate(steps):
+        s["stepNo"] = i
+
+    # Cleanup temp numbers
+    for e in events:
+        e.pop("_tempNo", None)
+    for s in steps:
+        s.pop("_tempNo", None)
+
+    script["test_json"]["eventsList"] = events
+    script["test_json"]["steps"] = steps
+
+    return script
+
+def remove_temp_numbers_from_script(script):
+    for e in script["test_json"]["eventsList"]:
+        e.pop("_tempNo", None)
+
+    for s in script["test_json"]["steps"]:
+        s.pop("_tempNo", None)
+
+    return script
 
 
 def feedback_tools_registration(mcp):
@@ -223,7 +282,7 @@ def feedback_tools_registration(mcp):
             return f"Feedback saved but failed to send to validation (Continue): Unexpected error. Error: {str(e)}"
 
     @mcp.tool()
-    def get_script_details(test_case_id: int = 1) -> str:
+    def get_script_details(test_case_id: int = 1):
         """
         Fetches script details from /script_details using the stored job_id and presents
         the script JSON in an ASCII table format when possible.
@@ -252,6 +311,8 @@ def feedback_tools_registration(mcp):
             response = requests.post(url, json=payload, headers=headers)
             response.raise_for_status()
             data = response.json()
+            data = data['script']
+            data = add_temp_numbers_to_script(data)
             set_test_json(data)
             print(data)
         except requests.HTTPError as e:
@@ -267,20 +328,67 @@ def feedback_tools_registration(mcp):
         # Fallback: pretty JSON
         try:
             import json
-            return json.dumps(data, ensure_ascii=False, indent=2)
+            return data
         except Exception as e:
             return f"Failed to get script details: Unexpected error. Error: {str(e)}"
 
     # New tool to send updated test JSON to the backend via /update_test_json.
     # Place this alongside get_script_details in the same file.
+    @mcp.tool
+    def validate_and_delete(delete_event_temp_nos: list[int], delete_step_temp_nos: list[int]):
+        """
+        Validates a user-requested deletion against the current script state and,
+        if valid, applies deletion and recomputation.
+
+        The deletion is accepted only if the number of remaining steps after
+        deletion would match the number of remaining event step groups. If this
+        condition is not met, the deletion is rejected and the script is left
+        unchanged.
+
+        Parameters:
+        - delete_event_temp_nos (list[int]): Temporary numbers identifying events to remove.
+        - delete_step_temp_nos (list[int]): Temporary numbers identifying steps to remove.
+
+        Returns:
+        - dict: The updated script if validation succeeds.
+        - None: If validation fails (caller may handle rejection logic).
+        """
+        # NOTE: `script` is intentionally treated as an existing variable.
+        # You can insert custom logic here if needed.
+        script = get_test_json()
+
+        events = script["test_json"]["eventsList"]
+        steps = script["test_json"]["steps"]
+
+        remaining_events = [e for e in events if e.get("_tempNo") not in delete_event_temp_nos]
+        remaining_steps = [s for s in steps if s.get("_tempNo") not in delete_step_temp_nos]
+
+        # Count distinct step groups from remaining events
+        event_step_groups = []
+        last = None
+        for e in remaining_events:
+            if e["stepNo"] != last:
+                event_step_groups.append(e["stepNo"])
+                last = e["stepNo"]
+
+        if len(remaining_steps) != len(remaining_events):
+            return None  # reject deletion
+
+        # Apply deletion + recompute (existing function)
+        script_post_delete =  delete_and_recompute_script(
+            script,
+            delete_event_temp_nos,
+            delete_step_temp_nos
+        )
+        set_test_json(script_post_delete)
+        return script_post_delete
 
     @mcp.tool()
-    def update_test_json(test_json: str, test_name: str = None) -> str:
+    def update_test_json(test_name: str = None) -> str:
         """
-        Sends the updated test JSON to /update_test_json using the stored job_id.
+        Send the correct testcase name only
 
         Args:
-            test_json: A JSON string containing the user/system updates to the test. follow the same format, no changes there
             test_name: please give the exact test name you want to change.
 
         Returns:
@@ -295,6 +403,11 @@ def feedback_tools_registration(mcp):
             return "No job_id found in session. Start generation first to obtain a job_id."
 
         url = BASE_URL + "update_test_json"
+        test_json = get_test_json()
+        test_json = remove_temp_numbers_from_script(test_json)
+        test_json = test_json['test_json']
+        import json
+        test_json = json.dumps(test_json)
         params = {
             "job_id": job_id,
             "test_json": test_json,
