@@ -186,8 +186,8 @@ def generation_tools_registration(mcp):
             time.sleep(2)
             response = requests.get(url, headers=get_auth_headers())
             response.raise_for_status()
-            final_response=response.text
-            if final_response["hitl"] == True:
+            final_response = response.json()
+            if final_response["hitl"] is True:
                 url=final_response["screenshot"]
                 final_response["screenshot"]=BASE_URL +"view_screenshot"+url
             print(response.text)
