@@ -133,6 +133,69 @@ def playwright_generation_tools_registration(mcp):
             }
 
     @mcp.tool()
+    def convert_playwright_py_to_ts(filename: str) -> dict:
+        """
+        Converts a Playwright Python test file to Playwright TypeScript via API.
+
+        Calls GET /convert_playwright_py_to_ts with JSON body:
+        {
+          "filename": "<python_filename_without_ext_or_with_ext>"
+        }
+
+        Args:
+            filename: Python test filename (with or without .py extension).
+
+        Returns:
+            The API response JSON as-is, e.g.:
+            {
+              "status": "success",
+              "source": "C:/.../scripts\\test_x.py",
+              "output": "C:/.../scripts_ts\\test_x.ts"
+            }
+            On error, returns:
+            {
+              "status": "error",
+              "error": "<message>",
+              "stage": "convert_py_to_ts"
+            }
+        """
+        headers = get_auth_headers()
+        if not headers:
+            return {
+                "status": "error",
+                "error": "Authentication headers missing",
+                "stage": "convert_py_to_ts"
+            }
+
+        payload = {
+            "project_name": get_current_project(),
+            "filename": filename
+        }
+
+        try:
+            resp = requests.get(
+                BASE_URL + "convert_playwright_py_to_ts",
+                json=payload,
+                headers=headers
+            )
+            resp.raise_for_status()
+            # Return the API response as-is
+            return resp.json()
+        except requests.exceptions.RequestException as e:
+            return {
+                "status": "error",
+                "error": f"API call failed: {str(e)}",
+                "stage": "convert_py_to_ts"
+            }
+        except ValueError as e:
+            # JSON parse error
+            return {
+                "status": "error",
+                "error": f"Invalid JSON response: {str(e)}",
+                "stage": "convert_py_to_ts"
+            }
+
+    @mcp.tool()
     def export_artefacts(project: str = None) -> dict:
         """
         Calls /export_artefacts to save artefacts ZIP on the server and returns the file name to the user.
