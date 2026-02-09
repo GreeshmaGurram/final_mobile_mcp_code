@@ -188,8 +188,9 @@ def generation_tools_registration(mcp):
             response.raise_for_status()
             final_response = response.json()
             if final_response["hitl"] is True:
-                url=final_response["screenshot"]
-                final_response["screenshot"]=BASE_URL +"view_screenshot"+url
+                if "screenshot" in final_response:
+                    url=final_response["screenshot"]
+                    final_response["screenshot"]=BASE_URL +"view_screenshot"+url
             print(response.text)
             return response.text
         except requests.RequestException as e:
