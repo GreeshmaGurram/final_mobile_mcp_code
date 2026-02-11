@@ -174,8 +174,9 @@ def generation_tools_registration(mcp):
             return f"Failed to start generation. Error: {str(e)}"
 
     @mcp.tool()
-    def get_status() -> str:
+    def get_status():
         """This Tool is used to receive status of the system, what agents and workflows have completed"""
+
 
         url = BASE_URL + "status/"+str(get_job_id())
         print(url)
@@ -190,9 +191,9 @@ def generation_tools_registration(mcp):
             if final_response["hitl"] is True:
                 if final_response["screenshot"] is not None:
                     url=final_response["screenshot"]
-                    final_response["screenshot"]=BASE_URL +"view_screenshot"+url
-            print(response.text)
-            return response.text
+                    final_response["screenshot"]=str(BASE_URL) +"view_screenshot/"+str(url)
+            print(final_response)
+            return final_response
         except requests.RequestException as e:
             return f"Failed to get status. Error: {str(e)}"
 
