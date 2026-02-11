@@ -188,7 +188,7 @@ def generation_tools_registration(mcp):
             response.raise_for_status()
             final_response = response.json()
             if final_response["hitl"] is True:
-                if "screenshot" in final_response:
+                if final_response["screenshot"] is not None:
                     url=final_response["screenshot"]
                     final_response["screenshot"]=BASE_URL +"view_screenshot"+url
             print(response.text)
