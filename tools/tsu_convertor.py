@@ -4,8 +4,6 @@ import mcp
 import requests
 import os
 from tools.base import login_check, get_jwt,get_auth_headers, get_user_id, get_current_project, set_job_id,get_job_id
-from tools.script_generation_tools import script_generation_tools_registration
-
 BASE_URL = os.getenv("BASE_URL")
 
 import random
@@ -24,9 +22,10 @@ def generate_unique_id():
     return result
 
 
-def script_execution_tools_registration(mcp):
+def tsu_convertor_tools(mcp):
+
     @mcp.tool()
-    def execute_testcase(
+    def generate_script_for_testcase(
             script_name: str,
             test_case_id: int = 1,
             browser: str = "chrome",
@@ -34,99 +33,8 @@ def script_execution_tools_registration(mcp):
             sequence_no: int = 2
     ) -> dict:
         """
-        Executes a refined test case in agentic mode.
-
-        This tool performs an execution-only flow. It does NOT run validation logic.
-        Instead, it explicitly transitions the test case from Validation to Execution,
-        fetches the refined test case from storage, and starts Playwright execution
-        with agentic behavior enabled.
-
-        ──────────────────────────────────────────────────────────────────────────────
-        Execution Flow
-        ──────────────────────────────────────────────────────────────────────────────
-        1. Marks the test case Validation stage as COMPLETED.
-        2. Moves the test case Execution stage to IN_PROGRESS.
-        3. Fetches the refined test case using /get_refined_TestCases.
-        4. Starts Playwright execution in AGENTIC mode.
-
-        In agentic mode:
-        • Execution stops immediately on the first failure.
-        • No self-healing or retries are performed.
-        • An execution report is generated automatically.
-
-        ──────────────────────────────────────────────────────────────────────────────
-        Parameters
-        ──────────────────────────────────────────────────────────────────────────────
-        script_name : str
-            Name of the script as shown in execution reports and UI.
-
-        test_case_id : int
-            Identifier of the test case to execute.
-
-        browser : str, optional
-            Browser to use for execution.
-            Examples: "chrome", "firefox".
-            Default is "chrome".
-
-        headless : bool, optional
-            Whether to run the browser in headless mode.
-            Default is False.
-
-        sequence_no : int, optional
-            Workflow sequence number.
-            Present for compatibility; not used directly in execution.
-            Default is 2.
-
-        ──────────────────────────────────────────────────────────────────────────────
-        Returns
-        ──────────────────────────────────────────────────────────────────────────────
-        dict
-            On success:
-            {
-                "success": true,
-                "job_id": <int>,
-                "test_case_id": <int>,
-                "script_name": <str>,
-                "unique_id": <str>,
-                "execution_id": <str>,
-                "browser": <str>,
-                "headless": <bool>,
-                "agentic": true
-            }
-
-            On failure:
-            {
-                "success": false,
-                "stage": <"stage_update" | "fetch_refined" | "execution">,
-                "error": <str>
-            }
-
-        ──────────────────────────────────────────────────────────────────────────────
-        Important Notes
-        ──────────────────────────────────────────────────────────────────────────────
-        • This tool assumes the test case has already been refined.
-        • Validation is NOT re-run.
-        • Refined test cases are fetched via /get_refined_TestCases.
-        • Execution is strictly agentic (fail-fast).
-        • Suitable for direct execution, re-runs, or agent-driven workflows.
-
-        ──────────────────────────────────────────────────────────────────────────────
-        Correct Usage
-        ──────────────────────────────────────────────────────────────────────────────
-        execute_testcase(
-            script_name="Login Flow",
-            test_case_id=1,
-            browser="chrome",
-            headless=false
-        )
-
-        ──────────────────────────────────────────────────────────────────────────────
-        Incorrect Usage
-        ──────────────────────────────────────────────────────────────────────────────
-        • Calling this tool before refinement is completed.
-        • Expecting self-healing or retries (agentic mode disables them).
+        Convert tsu file into json format
         """
-
 
         job_id = get_job_id()
         headers = get_auth_headers()
@@ -136,78 +44,56 @@ def script_execution_tools_registration(mcp):
                 "error": "Authentication headers missing"
             }
 
-        # ── Step 1: Update test case stages ────────────────────────────────────
+        # ── Step 1: Validation ───────────────────────────────────────────────
         try:
-            stage_response = requests.post(
-                f"{BASE_URL}update_test_case_stages",
-                json={  # ✅ JSON body
-                    "job_id": job_id,
-                    "tc_id": test_case_id
-                },
+            val_payload = {
+                "job_id": job_id,
+                "sequence_no": sequence_no,
+                "test_case_id": test_case_id
+            }
+
+            val_response = requests.post(
+                BASE_URL + "start_validation",
+                json=val_payload,
                 headers=headers,
-                timeout=15
+                timeout=30
             )
+            val_response.raise_for_status()
+            val_data = val_response.json()
 
-            stage_response.raise_for_status()
-            stage_data = stage_response.json()
-
-            if stage_data.get("status") != "success":
+            if not val_data.get("success") or not val_data.get("test_cases"):
                 return {
                     "success": False,
-                    "stage": "stage_update",
-                    "response": stage_data
+                    "stage": "validation",
+                    "response": val_data
                 }
+
+            test_case_data = next(
+                (
+                    tc for tc in val_data["test_cases"]
+                    if isinstance(tc, dict)
+                    and (tc.get("test_case_id") == test_case_id or tc.get("id") == test_case_id)
+                ),
+                None
+            )
+
+            if not test_case_data or not test_case_data.get("test_json"):
+                return {
+                    "success": False,
+                    "stage": "validation",
+                    "error": "Valid test_json not found in validation response"
+                }
+
+            test_json = test_case_data["test_json"]
 
         except Exception as e:
             return {
                 "success": False,
-                "stage": "stage_update",
+                "stage": "validation",
                 "error": str(e)
             }
 
-        # ── Step 2: Fetch refined test case via API ────────────────────────────
-        try:
-            refined_response = requests.post(
-                BASE_URL + "get_refined_TestCases",
-                json={
-                    "job_id": job_id,
-                    "test_case_id": test_case_id
-                },
-                headers=headers,
-                timeout=20
-            )
-            refined_response.raise_for_status()
-            refined_data = refined_response.json()
-
-            if "Refined" not in refined_data:
-                return {
-                    "success": False,
-                    "stage": "fetch_refined",
-                    "error": refined_data.get("error", "Refined test case not found")
-                }
-
-            refined_tc = refined_data["Refined"]
-
-            # ⚠️ IMPORTANT:
-            # _get_refined_test_cases deletes `test_json` before returning,
-            # so we must reconstruct execution JSON from stored refined data
-            test_json = refined_tc.get("test_json")
-
-            if not test_json:
-                return {
-                    "success": False,
-                    "stage": "fetch_refined",
-                    "error": "No executable test_json found in refined test case"
-                }
-
-        except Exception as e:
-            return {
-                "success": False,
-                "stage": "fetch_refined",
-                "error": str(e)
-            }
-
-        # ── Step 3: Start execution (agentic mode) ─────────────────────────────
+        # ── Step 2: Start script generation / execution ───────────────────────
         try:
             unique_id = generate_unique_id()
 
@@ -223,7 +109,7 @@ def script_execution_tools_registration(mcp):
                 "baseLineFlag": "false",
                 "captureScreenshot": "true",
                 "multiData": "false",
-                "agentic": "true"
+                "agentic": "false"
             }
 
             exec_response = requests.post(
@@ -242,6 +128,7 @@ def script_execution_tools_registration(mcp):
                     "response": result
                 }
 
+            # ✅ IMPORTANT: structured return
             return {
                 "success": True,
                 "job_id": job_id,
@@ -250,8 +137,7 @@ def script_execution_tools_registration(mcp):
                 "unique_id": result.get("uniqueId"),
                 "execution_id": result.get("exec_id"),
                 "browser": browser,
-                "headless": headless,
-                "agentic": True
+                "headless": headless
             }
 
         except Exception as e:
@@ -262,7 +148,7 @@ def script_execution_tools_registration(mcp):
             }
 
     @mcp.tool()
-    def get_execution_logs(
+    def get_script_generation_logs(
             unique_id: str,
             execution_id: str,
             limit: int = 500,
@@ -396,5 +282,39 @@ def script_execution_tools_registration(mcp):
             return {
                 "success": False,
                 "error": "Unexpected error while processing execution logs",
+                "details": str(e)
+            }
+
+    @mcp.tool
+    def user_input(user_input: str):
+        job_id = get_job_id()
+        headers = get_auth_headers()
+        try:
+            url_user_input = BASE_URL + f"/userInput/{job_id}"
+
+            user_input_payload = {
+                "user_input": user_input,  # or "refine" - please confirm which one you need
+            }
+
+            response = requests.post(url_user_input, json=user_input_payload, headers=headers)
+            response.raise_for_status()
+            user_input_data = response.json()
+            return user_input_data
+        except Exception as e:
+            return {
+                "success": False,
+                "error": "User Input Couldnt be sent",
+                "details": str(e)
+            }
+
+    @mcp.tool
+    def show_weather():
+        """this tool is used to get weather details """
+        try:
+            return "wather information received"
+        except Exception as e:
+            return {
+                "success": False,
+                "error": "User Input Couldnt be sent",
                 "details": str(e)
             }

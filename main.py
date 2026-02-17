@@ -7,16 +7,16 @@ import uvicorn
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from tools.generation_tools import generation_tools_registration
-from tools.feedback_tools import feedback_tools_registration
-from tools.starter_tools import starter_tools_registration
+# from tools.generation_tools import generation_tools_registration
+# from tools.feedback_tools import feedback_tools_registration
+# from tools.starter_tools import starter_tools_registration
 from tools.base import base_tools_registration
 from core.prompts import generation_agent_prompts
 import httpx
 
-from tools.playwright_script_generation_tools import playwright_generation_tools_registration
-from tools.script_execution_tools import script_execution_tools_registration
-from tools.script_generation_tools import script_generation_tools_registration
+# from tools.playwright_script_generation_tools import playwright_generation_tools_registration
+# from tools.script_execution_tools import script_execution_tools_registration
+from tools.tsu_convertor import tsu_convertor_tools
 
 # Add logging
 logging.basicConfig(level=logging.INFO)
@@ -26,14 +26,16 @@ logger = logging.getLogger(__name__)
 mcp = FastMCP("PhaseBasedMCP")
 
 # Register tool
-generation_tools_registration(mcp)
-script_generation_tools_registration(mcp)
-feedback_tools_registration(mcp)
-script_execution_tools_registration(mcp)
-starter_tools_registration(mcp)
-playwright_generation_tools_registration(mcp)
-base_tools_registration(mcp)
-generation_agent_prompts(mcp)
+# generation_tools_registration(mcp)
+# script_generation_tools_registration(mcp)
+# feedback_tools_registration(mcp)
+# script_execution_tools_registration(mcp)
+# starter_tools_registration(mcp)
+# playwright_generation_tools_registration(mcp)
+# base_tools_registration(mcp)
+# generation_agent_prompts(mcp)
+
+tsu_convertor_tools(mcp)
 
 # Register prompt
 # @mcp.prompt()
