@@ -1,0 +1,241 @@
+[
+  {
+    "TestCaseName": "Register To Demo Web Shop",
+    "Steps": [
+      {
+        "StepName": "OpenUrl",
+        "Actions": [
+          {
+            "Value": "https://demowebshop.tricentis.com/",
+            "ActionMode": "37",
+            "Operator": "0",
+            "DataType": "0",
+            "Condition": ""
+          },
+          {
+            "Value": "True",
+            "ActionMode": "37",
+            "Operator": "0",
+            "DataType": "0",
+            "Condition": ""
+          }
+        ],
+        "ModuleRef": [
+          "39e342b2-6ec7-c946-9cd1-0350e5804eaf"
+        ],
+        "FieldRefs": [
+          "39e342b2-960b-2251-d1b9-5b340c12fa19",
+          "39ef3b0d-1ee2-a137-d5d3-976be1b8c766"
+        ]
+      },
+      {
+        "StepName": "Click on Register",
+        "Actions": [
+          {
+            "Value": "{Click}",
+            "ActionMode": "37",
+            "Operator": "0",
+            "DataType": "0",
+            "Condition": ""
+          }
+        ],
+        "ModuleRef": [
+          "3a1d6be2-ff5c-6e22-be77-ccfd13a28be2"
+        ],
+        "FieldRefs": [
+          "3a1d6be2-ff94-a173-2c0a-c200a0d9c14c"
+        ]
+      },
+      {
+        "StepName": "Add Details",
+        "Actions": [
+          {
+            "Value": "x",
+            "ActionMode": "37",
+            "Operator": "0",
+            "DataType": "0",
+            "Condition": ""
+          },
+          {
+            "Value": "{RANDOMTEXT[5]}",
+            "ActionMode": "37",
+            "Operator": "0",
+            "DataType": "0",
+            "Condition": ""
+          },
+          {
+            "Value": "Username",
+            "ActionMode": "165",
+            "Operator": "0",
+            "DataType": "0",
+            "Condition": ""
+          },
+          {
+            "Value": "{RANDOMTEXT[5]}",
+            "ActionMode": "37",
+            "Operator": "0",
+            "DataType": "0",
+            "Condition": ""
+          },
+          {
+            "Value": "Lastname",
+            "ActionMode": "165",
+            "Operator": "0",
+            "DataType": "0",
+            "Condition": ""
+          },
+          {
+            "Value": "test{RND[4]}@Demo.com",
+            "ActionMode": "37",
+            "Operator": "0",
+            "DataType": "0",
+            "Condition": ""
+          },
+          {
+            "Value": "21489a0b-c163-4a62-b61e-501090c9506aMgAxADQAOAA5AGEAMABiAC0AYwAxADYAMwAtADQAYQA2ADIALQBiADYAMQBlAC0ANQAwADEAMAA5ADAAYwA5ADUAMAA2AGEAMHqbT63kFkxb64pWl2ZZgUBF1RtWe2cERDX5jlHByLw=",
+            "ActionMode": "37",
+            "Operator": "0",
+            "DataType": "4",
+            "Condition": ""
+          },
+          {
+            "Value": "21489a0b-c163-4a62-b61e-501090c9506aMgAxADQAOAA5AGEAMABiAC0AYwAxADYAMwAtADQAYQA2ADIALQBiADYAMQBlAC0ANQAwADEAMAA5ADAAYwA5ADUAMAA2AGEAMHqbT63kFkxb64pWl2ZZgUBF1RtWe2cERDX5jlHByLw=",
+            "ActionMode": "37",
+            "Operator": "0",
+            "DataType": "4",
+            "Condition": ""
+          },
+          {
+            "Value": "{Click}",
+            "ActionMode": "37",
+            "Operator": "0",
+            "DataType": "0",
+            "Condition": ""
+          }
+        ],
+        "ModuleRef": [
+          "3a1d6be9-9072-f250-dec1-43ad10017ba4"
+        ],
+        "FieldRefs": [
+          "3a1d6be9-908a-af54-083f-83760fbe6975",
+          "3a1d6be9-9095-7742-0ab8-670e799e1611",
+          "3a1d6be9-9095-7742-0ab8-670e799e1611",
+          "3a1d6be9-90a2-f921-570c-b051e1fa2c61",
+          "3a1d6be9-90a2-f921-570c-b051e1fa2c61",
+          "3a1d6bf1-f8cb-ceca-035d-b21b00ae3893",
+          "3a1d6be9-90ad-0ef4-85f4-17eb89cf0abf",
+          "3a1d6be9-90b8-4ec0-7f6a-78f1eede1437",
+          "3a1d6be9-90c1-73c5-73ee-be842a69341a"
+        ]
+      },
+      {
+        "StepName": "Click on Continue",
+        "Actions": [
+          {
+            "Value": "{Click}",
+            "ActionMode": "37",
+            "Operator": "0",
+            "DataType": "0",
+            "Condition": ""
+          }
+        ],
+        "ModuleRef": [
+          "3a1d8475-66e7-e712-be57-70bf6af0a84f"
+        ],
+        "FieldRefs": [
+          "3a1d8475-671b-034c-0e53-a9fda039897e"
+        ]
+      },
+      {
+        "StepName": "Click on Book",
+        "Actions": [
+          {
+            "Value": "{Click}",
+            "ActionMode": "37",
+            "Operator": "0",
+            "DataType": "0",
+            "Condition": ""
+          }
+        ],
+        "ModuleRef": [
+          "3a1d8476-d6ca-24da-ce83-ec40f29dfb15"
+        ],
+        "FieldRefs": [
+          "3a1d8476-d6e7-b91b-161d-1e3c57aeab98"
+        ]
+      },
+      {
+        "StepName": "Add to Cart",
+        "Actions": [
+          {
+            "Value": "{Click}",
+            "ActionMode": "37",
+            "Operator": "0",
+            "DataType": "0",
+            "Condition": ""
+          }
+        ],
+        "ModuleRef": [
+          "3a1d8476-d6ca-24da-ce83-ec40f29dfb15"
+        ],
+        "FieldRefs": [
+          "3a1d8480-b014-c031-d3d6-b0df5802b6ca"
+        ]
+      },
+      {
+        "StepName": "Demo Web Shop. Books",
+        "Actions": [
+          {
+            "Value": "{Click}",
+            "ActionMode": "37",
+            "Operator": "0",
+            "DataType": "0",
+            "Condition": ""
+          }
+        ],
+        "ModuleRef": [
+          "3a1d8483-d94c-d7b1-bbac-71aab45c0742"
+        ],
+        "FieldRefs": [
+          "3a1d8483-d960-c7cb-8d0a-fbbdc9c18175"
+        ]
+      },
+      {
+        "StepName": "Demo Web Shop. Shopping Cart",
+        "Actions": [
+          {
+            "Value": "{NULL}",
+            "ActionMode": "1",
+            "Operator": "0",
+            "DataType": "0",
+            "Condition": ""
+          }
+        ],
+        "ModuleRef": [
+          "3a1d8487-4d8d-cbfc-5cf1-068713fc9658"
+        ],
+        "FieldRefs": [
+          "3a1d8487-4d9a-e72f-db4f-d22f6e200ffa"
+        ]
+      },
+      {
+        "StepName": "Demo Web Shop. Books",
+        "Actions": [
+          {
+            "Value": "{Click}",
+            "ActionMode": "37",
+            "Operator": "0",
+            "DataType": "0",
+            "Condition": ""
+          }
+        ],
+        "ModuleRef": [
+          "3a1d8483-d94c-d7b1-bbac-71aab45c0742"
+        ],
+        "FieldRefs": [
+          "3a1d8483-d957-f62a-882c-8df594b1d568"
+        ]
+      }
+    ]
+  }
+]
