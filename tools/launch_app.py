@@ -10,10 +10,22 @@ def launch_app_tool_registration(mcp, shared_state, dependencies):
     log = dependencies["log_to_file"]
 
     @mcp.tool()
-    async def launch_app(bundleId: str) -> Dict[str, Any]:
+    async def launch_app(bundleId: str = "com.android.settings") -> Dict[str, Any]:
+        #using a sample bundleID just for testing purposes
         """
         Launch an app using bundleId/package name.
         """
+
+        # -------------------------------
+        # VALIDATION (✅ FIX ADDED)
+        # -------------------------------
+        if not bundleId or bundleId.strip() == "":
+            return {
+                "content": [{
+                    "type": "text",
+                    "text": "Error: bundleId/package name cannot be empty."
+                }]
+            }
 
         # -------------------------------
         # CHECK SESSION

@@ -1,0 +1,153 @@
+from typing import Dict, Any
+
+
+def find_element_tool_registration(mcp, shared_state, dependencies):
+    """
+    Registers the find_element MCP tool.
+    Supports both Android and iOS strategies.
+    """
+
+    log = dependencies["log_to_file"]
+
+    # ✅ All supported strategies (Android + iOS + Common)
+    ALLOWED_STRATEGIES = [
+        # Common
+        "id",
+        "accessibility id",
+        "xpath",
+        "class name",
+        "name",
+
+        # Android
+        "-android uiautomator",
+
+        # iOS
+        "-ios predicate string",
+        "-ios class chain",
+    ]
+
+    @mcp.tool()
+    async def find_element(
+        strategy: str = "xpath",
+        selector: str = "//android.widget.TextView"
+    ) -> Dict[str, Any]:
+        """
+        Finds a UI element using a given strategy and selector.
+        """
+
+        # -------------------------------
+        # CHECK SESSION
+        # -------------------------------
+        if not shared_state.appium_driver:
+            return {
+                "content": [{
+                    "type": "text",
+                    "text": "Error: Appium session not active. Start session first."
+                }]
+            }
+
+        driver = shared_state.appium_driver
+        platform = shared_state.current_platform
+
+        # -------------------------------
+        # VALIDATE STRATEGY
+        # -------------------------------
+        if strategy not in ALLOWED_STRATEGIES:
+            return {
+                "content": [{
+                    "type": "text",
+                    "text": f"Invalid strategy '{strategy}'. Allowed: {ALLOWED_STRATEGIES}"
+                }]
+            }
+
+        # -------------------------------
+        # PLATFORM-SPECIFIC VALIDATION
+        # -------------------------------
+        if platform == "android" and strategy.startswith("-ios"):
+            return {
+                "content": [{
+                    "type": "text",
+                    "text": f"Strategy '{strategy}' is iOS-only."
+                }]
+            }
+
+        if platform == "ios" and strategy.startswith("-android"):
+            return {
+                "content": [{
+                    "type": "text",
+                    "text": f"Strategy '{strategy}' is Android-only."
+                }]
+            }
+
+        # -------------------------------
+        # FIND ELEMENT
+        # -------------------------------
+        try:
+            log(f"[find_element] Strategy: {strategy}, Selector: {selector}")
+
+            # Mapping strategies (Python Appium)
+            if strategy == "id":
+                element = driver.find_element("id", selector)
+
+            elif strategy == "accessibility id":
+                element = driver.find_element("accessibility id", selector)
+
+            elif strategy == "xpath":
+                element = driver.find_element("xpath", selector)
+
+            elif strategy == "class name":
+                element = driver.find_element("class name", selector)
+
+            elif strategy == "name":
+                element = driver.find_element("name", selector)
+
+            elif strategy == "-android uiautomator":
+                element = driver.find_element("-android uiautomator", selector)
+
+            elif strategy == "-ios predicate string":
+                element = driver.find_element("-ios predicate string", selector)
+
+            elif strategy == "-ios class chain":
+                element = driver.find_element("-ios class chain", selector)
+
+            else:
+                return {
+                    "content": [{
+                        "type": "text",
+                        "text": f"Strategy '{strategy}' not implemented"
+                    }]
+                }
+
+            # -------------------------------
+            # HANDLE RESULT
+            # -------------------------------
+            if element:
+                element_id = element.id
+                log(f"[find_element] Element found with ID: {element_id}")
+
+                return {
+                    "content": [{
+                        "type": "text",
+                        "text": f"Element found. ID: {element_id}"
+                    }]
+                }
+
+            else:
+                log("[find_element] Element not found")
+
+                return {
+                    "content": [{
+                        "type": "text",
+                        "text": "Element not found"
+                    }]
+                }
+
+        except Exception as e:
+            log(f"[find_element] Error: {str(e)}")
+
+            return {
+                "content": [{
+                    "type": "text",
+                    "text": f"Error finding element: {str(e)}"
+                }]
+            }

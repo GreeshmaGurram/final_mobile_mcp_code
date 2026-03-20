@@ -25,6 +25,8 @@ from tools.tsu_tools import tsu_tools_registration
 from tools.testcase_tools import testcase_tools_registration
 from tools.start_session import start_session_tool_registration
 from tools.end_session import end_session_tool_registration
+from tools.launch_app import launch_app_tool_registration
+from tools.find_element import find_element_tool_registration
 
 # ---- LOGGING ----
 logging.basicConfig(level=logging.INFO)
@@ -59,6 +61,8 @@ locator_tools_registration(mcp)
 # 🔥 UPDATED: pass shared_state + dependencies
 start_session_tool_registration(mcp, shared_state, dependencies)
 end_session_tool_registration(mcp, shared_state, dependencies)
+launch_app_tool_registration(mcp, shared_state, dependencies)
+find_element_tool_registration(mcp, shared_state, dependencies)
 # =========================================================
 
 if __name__ == "__main__":
