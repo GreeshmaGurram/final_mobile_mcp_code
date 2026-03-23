@@ -16,9 +16,6 @@ def launch_app_tool_registration(mcp, shared_state, dependencies):
         Launch an app using bundleId/package name.
         """
 
-        # -------------------------------
-        # VALIDATION (✅ FIX ADDED)
-        # -------------------------------
         if not bundleId or bundleId.strip() == "":
             return {
                 "content": [{
@@ -27,9 +24,7 @@ def launch_app_tool_registration(mcp, shared_state, dependencies):
                 }]
             }
 
-        # -------------------------------
         # CHECK SESSION
-        # -------------------------------
         if not shared_state.appium_driver:
             return {
                 "content": [{
@@ -57,9 +52,6 @@ def launch_app_tool_registration(mcp, shared_state, dependencies):
 
             log(f"[launch_app] Cloud environment: {is_cloud}")
 
-            # -------------------------------
-            # TRY QUERY APP STATE (optional)
-            # -------------------------------
             app_state = None
 
             if not is_cloud:
@@ -69,9 +61,7 @@ def launch_app_tool_registration(mcp, shared_state, dependencies):
                 except Exception as e:
                     log(f"[launch_app] query_app_state not supported: {str(e)}")
 
-            # -------------------------------
             # TERMINATE IF RUNNING
-            # -------------------------------
             if app_state and app_state > 1:
                 try:
                     log(f"[launch_app] App running (state={app_state}), terminating...")
@@ -91,9 +81,7 @@ def launch_app_tool_registration(mcp, shared_state, dependencies):
                 except Exception:
                     log("[launch_app] Cloud terminate skipped (not supported)")
 
-            # -------------------------------
             # ACTIVATE APP (MAIN STEP)
-            # -------------------------------
             log(f"[launch_app] Activating app: {bundleId}")
 
             driver.activate_app(bundleId)

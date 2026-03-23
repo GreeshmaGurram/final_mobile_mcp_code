@@ -11,17 +11,12 @@ def find_element_tool_registration(mcp, shared_state, dependencies):
 
     # ✅ All supported strategies (Android + iOS + Common)
     ALLOWED_STRATEGIES = [
-        # Common
         "id",
         "accessibility id",
         "xpath",
         "class name",
         "name",
-
-        # Android
         "-android uiautomator",
-
-        # iOS
         "-ios predicate string",
         "-ios class chain",
     ]
@@ -31,13 +26,12 @@ def find_element_tool_registration(mcp, shared_state, dependencies):
         strategy: str = "xpath",
         selector: str = "//android.widget.TextView"
     ) -> Dict[str, Any]:
+    # gave default values for strategy and selector just for testing purposes
         """
         Finds a UI element using a given strategy and selector.
         """
 
-        # -------------------------------
         # CHECK SESSION
-        # -------------------------------
         if not shared_state.appium_driver:
             return {
                 "content": [{
@@ -49,9 +43,7 @@ def find_element_tool_registration(mcp, shared_state, dependencies):
         driver = shared_state.appium_driver
         platform = shared_state.current_platform
 
-        # -------------------------------
         # VALIDATE STRATEGY
-        # -------------------------------
         if strategy not in ALLOWED_STRATEGIES:
             return {
                 "content": [{
@@ -60,9 +52,7 @@ def find_element_tool_registration(mcp, shared_state, dependencies):
                 }]
             }
 
-        # -------------------------------
         # PLATFORM-SPECIFIC VALIDATION
-        # -------------------------------
         if platform == "android" and strategy.startswith("-ios"):
             return {
                 "content": [{
@@ -79,11 +69,11 @@ def find_element_tool_registration(mcp, shared_state, dependencies):
                 }]
             }
 
-        # -------------------------------
         # FIND ELEMENT
-        # -------------------------------
         try:
             log(f"[find_element] Strategy: {strategy}, Selector: {selector}")
+
+            #element = driver.find_element( strategy, selector)
 
             # Mapping strategies (Python Appium)
             if strategy == "id":
@@ -118,9 +108,7 @@ def find_element_tool_registration(mcp, shared_state, dependencies):
                     }]
                 }
 
-            # -------------------------------
             # HANDLE RESULT
-            # -------------------------------
             if element:
                 element_id = element.id
                 log(f"[find_element] Element found with ID: {element_id}")

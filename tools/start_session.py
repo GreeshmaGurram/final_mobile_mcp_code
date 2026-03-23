@@ -11,6 +11,7 @@ from appium.options.ios import XCUITestOptions
 def start_session_tool_registration(mcp, shared_state, dependencies):
     """
     Registers the start_session MCP tool.
+    Connects to an Appium server and starts a session on a device.
     """
 
     log = dependencies["log_to_file"]

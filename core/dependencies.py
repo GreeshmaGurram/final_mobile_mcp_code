@@ -12,6 +12,8 @@ def log_to_file(*args):
 
 # ---------- Async Exec ----------
 async def exec_async(cmd: str) -> Dict[str, str]:
+    #open a terminal and execute the command passed as argument
+    # and return the output and error if occured
     proc = await asyncio.create_subprocess_shell(
         cmd,
         stdout=asyncio.subprocess.PIPE,
@@ -25,9 +27,10 @@ async def exec_async(cmd: str) -> Dict[str, str]:
 
 
 # ---------- iOS Version Parser ----------
+#return the version of the ios device
 def parse_ios_version(runtime: str | None) -> str | None:
     if not runtime:
-        return None
+        return None 
     try:
         return runtime.split(".")[-1].replace("-", ".")
     except Exception:
@@ -36,8 +39,13 @@ def parse_ios_version(runtime: str | None) -> str | None:
 
 # ---------- Android Version Parser ----------
 def parse_android_version(api_level: str | None) -> str | None:
-    mapping = {34: "14.0", 33: "13.0", 32: "12.1", 31: "12.0"}
+    mapping = {34: '14.0', 33: '13.0', 32: '12.1', 31: '12.0', 30: '11.0',
+    29: '10.0', 28: '9.0', 27: '8.1', 26: '8.0', 25: '7.1',
+    24: '7.0', 23: '6.0', 22: '5.1', 21: '5.0'}
     try:
+        #dict_name.get(key, default_value)
+        #if the key is not found, return the default value
+        #if the key is found, return the value
         return mapping.get(int(api_level), api_level)
     except Exception:
         return api_level
@@ -54,10 +62,11 @@ def detect_android_devices() -> List[Dict[str, Any]]:
             parts = line.split()
             device_id = parts[0]
 
-            model = "Unknown"
+            model = "Unknown Android Device"
             api_level = "unknown"
 
             try:
+                #subprocess.run(command, capture_output=True, text=True) -> run system cmd
                 model = subprocess.run(
                     [adb, "-s", device_id, "shell", "getprop", "ro.product.model"],
                     capture_output=True, text=True
@@ -74,7 +83,7 @@ def detect_android_devices() -> List[Dict[str, Any]]:
                 "id": device_id,
                 "name": model,
                 "apiLevel": api_level,
-                "version": parse_android_version(api_level),
+                "version": parse_android_version(api_level) or "unknown",
                 "type": "emulator" if "emulator" in device_id else "device",
                 "platform": "android"
             })
