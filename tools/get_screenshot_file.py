@@ -10,7 +10,7 @@ def get_screenshot_tool_registration(mcp, shared_state, dependencies):
     log = dependencies["log_to_file"]
 
     @mcp.tool()
-    async def get_screenshot() -> Dict[str, Any]:
+    async def get_screenshot_file() -> Dict[str, Any]:
         """
         Takes a screenshot of the current screen.
         """

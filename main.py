@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import httpx
 import threading
 import time
+from pathlib import Path
 
 # ---- NEW IMPORTS (IMPORTANT) ----
 from core.shared_state import SharedState
@@ -57,6 +58,9 @@ dependencies = {
     "parse_ios_version": parse_ios_version,
     "parse_android_version": parse_android_version,
     "detect_android_devices": detect_android_devices,
+    # Expected by `tools/get_device_logs.py` to locate logs created in `start_session.py`
+    "device_log_file_path": str(Path("./logs") / "ios_device.log"),
+    "android_log_file_path": str(Path("./logs") / "android_device.log"),
 }
 
 # =========================================================
