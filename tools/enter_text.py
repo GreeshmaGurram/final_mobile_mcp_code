@@ -1,5 +1,7 @@
 from typing import Dict, Any
 
+from appium.webdriver.webelement import WebElement
+
 
 def enter_text_tool_registration(mcp, shared_state, dependencies):
     """
@@ -29,6 +31,7 @@ def enter_text_tool_registration(mcp, shared_state, dependencies):
         # -------------------------------
         # INPUT VALIDATION
         # -------------------------------
+        elementId = (elementId or "").strip()
         if not elementId:
             return {
                 "content": [{
@@ -50,20 +53,9 @@ def enter_text_tool_registration(mcp, shared_state, dependencies):
         try:
             log(f"[enter_text] Attempting to set value for element with ID '{elementId}'")
 
-            # -------------------------------
-            # CLEAR ELEMENT
-            # -------------------------------
-            # Equivalent to elementClear in WebdriverIO
-            driver.execute("elementClear", {"id": elementId})
-
-            # -------------------------------
-            # SEND KEYS
-            # -------------------------------
-            # Equivalent to elementSendKeys in WebdriverIO
-            driver.execute("elementSendKeys", {
-                "id": elementId,
-                "text": text
-            })
+            el = WebElement(driver, elementId)
+            el.clear()
+            el.send_keys(text)
 
             log(f"[enter_text] Value set for element with ID '{elementId}' successfully.")
 

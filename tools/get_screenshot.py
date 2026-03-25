@@ -13,6 +13,8 @@ def get_screenshot_tool_registration(mcp, shared_state, dependencies):
     async def get_screenshot() -> Dict[str, Any]:
         """
         Takes a screenshot of the current screen.
+        Response text is a base64-encoded PNG (not a file path). For a real .png file
+        on disk, use get_screenshot_file instead.
         """
 
         # -------------------------------
@@ -31,14 +33,9 @@ def get_screenshot_tool_registration(mcp, shared_state, dependencies):
         try:
             log("[get_screenshot] Attempting to take screenshot...")
 
-            # -------------------------------
-            # TAKE SCREENSHOT
-            # -------------------------------
-            # Equivalent to WebdriverIO takeScreenshot()
-            response = driver.execute("takeScreenshot")
-
-            # Appium may return string or dict
-            screenshot_base64 = response if isinstance(response, str) else response.get("value", "")
+            screenshot_base64 = driver.get_screenshot_as_base64()
+            if not screenshot_base64:
+                raise RuntimeError("Empty screenshot from driver.")
 
             log("[get_screenshot] Screenshot taken successfully.")
 

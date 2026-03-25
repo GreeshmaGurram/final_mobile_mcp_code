@@ -43,6 +43,25 @@ def find_element_tool_registration(mcp, shared_state, dependencies):
         driver = shared_state.appium_driver
         platform = shared_state.current_platform
 
+        strategy = (strategy or "").strip()
+        selector = (selector or "").strip()
+
+        if not strategy:
+            return {
+                "content": [{
+                    "type": "text",
+                    "text": "Error: strategy cannot be empty."
+                }]
+            }
+
+        if not selector:
+            return {
+                "content": [{
+                    "type": "text",
+                    "text": "Error: selector cannot be empty."
+                }]
+            }
+
         # VALIDATE STRATEGY
         if strategy not in ALLOWED_STRATEGIES:
             return {

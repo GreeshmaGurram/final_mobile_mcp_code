@@ -1,4 +1,41 @@
-from typing import Dict, Any
+import asyncio
+from typing import Dict, Any, Optional
+
+
+async def _adb_launch_android_package(udid: str, package: str, log) -> None:
+    """
+    When Appium activate_app fails (e.g. YouTube Shell$HomeActivity resolver bug),
+    start the app's launcher task via explicit MAIN/LAUNCHER intent, then monkey.
+    """
+    async def _run(args: list) -> tuple[int, str, str]:
+        proc = await asyncio.create_subprocess_exec(
+            *args,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        out_b, err_b = await proc.communicate()
+        return proc.returncode, out_b.decode(errors="replace"), err_b.decode(errors="replace")
+
+    rc, out, err = await _run([
+        "adb", "-s", udid, "shell", "am", "start",
+        "-a", "android.intent.action.MAIN",
+        "-c", "android.intent.category.LAUNCHER",
+        "-p", package,
+    ])
+    combined = f"{out}\n{err}".strip()
+    log(f"[launch_app] adb am start rc={rc} output={combined[:500]}")
+
+    if rc != 0 or "error type" in combined.lower() or "unable to resolve intent" in combined.lower():
+        rc2, out2, err2 = await _run([
+            "adb", "-s", udid, "shell", "monkey", "-p", package,
+            "-c", "android.intent.category.LAUNCHER", "1",
+        ])
+        combined2 = f"{out2}\n{err2}".strip()
+        log(f"[launch_app] adb monkey rc={rc2} output={combined2[:500]}")
+        if rc2 != 0 or "no activities found" in combined2.lower():
+            raise RuntimeError(
+                f"adb fallback failed for {package}. am start: {combined}; monkey: {combined2}"
+            )
 
 
 def launch_app_tool_registration(mcp, shared_state, dependencies):
@@ -16,7 +53,8 @@ def launch_app_tool_registration(mcp, shared_state, dependencies):
         Launch an app using bundleId/package name.
         """
 
-        if not bundleId or bundleId.strip() == "":
+        bundleId = (bundleId or "").strip()
+        if not bundleId:
             return {
                 "content": [{
                     "type": "text",
@@ -84,7 +122,25 @@ def launch_app_tool_registration(mcp, shared_state, dependencies):
             # ACTIVATE APP (MAIN STEP)
             log(f"[launch_app] Activating app: {bundleId}")
 
-            driver.activate_app(bundleId)
+            try:
+                driver.activate_app(bundleId)
+            except Exception as act_err:
+                udid: Optional[str] = None
+                if shared_state.current_device:
+                    udid = shared_state.current_device.get("id")
+
+                if (
+                    not is_cloud
+                    and shared_state.current_platform == "android"
+                    and udid
+                ):
+                    log(
+                        f"[launch_app] activate_app failed ({act_err}); "
+                        "using adb MAIN/LAUNCHER fallback..."
+                    )
+                    await _adb_launch_android_package(udid, bundleId, log)
+                else:
+                    raise act_err
 
             log(f"[launch_app] App launched successfully")
 

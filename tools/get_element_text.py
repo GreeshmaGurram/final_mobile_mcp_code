@@ -1,5 +1,7 @@
 from typing import Dict, Any
 
+from appium.webdriver.webelement import WebElement
+
 
 def get_element_text_tool_registration(mcp, shared_state, dependencies):
     """
@@ -29,6 +31,7 @@ def get_element_text_tool_registration(mcp, shared_state, dependencies):
         # -------------------------------
         # INPUT VALIDATION
         # -------------------------------
+        elementId = (elementId or "").strip()
         if not elementId:
             return {
                 "content": [{
@@ -42,14 +45,7 @@ def get_element_text_tool_registration(mcp, shared_state, dependencies):
         try:
             log(f"[get_element_text] Attempting to get text from element with ID '{elementId}'")
 
-            # -------------------------------
-            # GET ELEMENT TEXT (low-level)
-            # -------------------------------
-            # Equivalent to WebdriverIO getElementText
-            response = driver.execute("getElementText", {"id": elementId})
-
-            # Appium may return either direct string or dict
-            text = response if isinstance(response, str) else response.get("value", "")
+            text = WebElement(driver, elementId).text
 
             log(f"[get_element_text] Successfully got text from element with ID '{elementId}'. Text: \"{text}\"")
 

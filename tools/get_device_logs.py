@@ -57,8 +57,16 @@ def get_device_logs_tool_registration(mcp, shared_state, dependencies):
         try:
             log(f"[get_device_logs] Attempting to read {platform_name} logs from: {log_file_path}")
 
-            with open(log_file_path, "r", encoding="utf-8") as f:
-                logs = f.read()
+            # Read only the tail to avoid huge responses/timeouts
+            max_bytes = 1024 * 256  # 256 KB
+            file_size = os.path.getsize(log_file_path) if os.path.exists(log_file_path) else 0
+
+            with open(log_file_path, "rb") as f:
+                if file_size > max_bytes:
+                    f.seek(file_size - max_bytes)
+                data = f.read()
+
+            logs = data.decode("utf-8", errors="replace")
 
             if logs.strip() == "":
                 log(f"[get_device_logs] {platform_name} log file is empty.")
@@ -80,6 +88,12 @@ def get_device_logs_tool_registration(mcp, shared_state, dependencies):
                 log(f"[get_device_logs] {platform_name} log file truncated.")
             except Exception as trunc_error:
                 log(f"[get_device_logs] Warning: Could not truncate {platform_name} log file: {str(trunc_error)}. Logs might be duplicated on next call.")
+
+            if file_size > max_bytes:
+                logs = (
+                    f"[truncated] Showing last {max_bytes} bytes of {platform_name} logs "
+                    f"(file was {file_size} bytes)\n\n{logs}"
+                )
 
             return {
                 "content": [{

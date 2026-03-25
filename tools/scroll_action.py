@@ -10,6 +10,24 @@ def scroll_tool_registration(mcp, shared_state, dependencies):
 
     log = dependencies["log_to_file"]
 
+    def _android_swipe_gesture(driver, direction: str, percent: float) -> None:
+        # Appium Android mobile gestures (UiAutomator2)
+        size = driver.get_window_size()
+        width = size["width"]
+        height = size["height"]
+
+        driver.execute_script(
+            "mobile: swipeGesture",
+            {
+                "left": 0,
+                "top": 0,
+                "width": width,
+                "height": height,
+                "direction": direction,
+                "percent": max(0.01, min(1.0, float(percent))),
+            },
+        )
+
     def _build_scroll_actions(start_x, start_y, end_x, end_y, width, height):
         """
         Convert normalized coords → absolute pixels and build W3C actions
@@ -115,7 +133,13 @@ def scroll_tool_registration(mcp, shared_state, dependencies):
             # -------------------------------
             # EXECUTE SCROLL
             # -------------------------------
-            driver.perform_actions(actions)
+            if hasattr(driver, "perform_actions"):
+                driver.perform_actions(actions)
+                if hasattr(driver, "release_actions"):
+                    driver.release_actions()
+            else:
+                # Reliable Android-native fallback (no W3C /actions dependency)
+                _android_swipe_gesture(driver, direction=direction, percent=distance)
 
             # Small wait for UI stability
             await asyncio.sleep(1)

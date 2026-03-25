@@ -181,6 +181,8 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
             )
 
             shared_state.appium_driver = driver
+            # Avoid immediate NoSuchElement when the UI is still settling after launch/transition
+            driver.implicitly_wait(10)
 
             log("[start_session] Session started successfully")
 
@@ -235,12 +237,18 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
             else:
                 log("[start_session] Starting Android logcat...")
 
+                # Clear logcat buffer and truncate file so reads stay fast
+                try:
+                    await exec_async(f'adb -s {selected_device["id"]} logcat -c')
+                except Exception as clear_err:
+                    log(f"[start_session] Warning: could not clear logcat buffer: {str(clear_err)}")
+
                 proc = subprocess.Popen(
                     [
                         "adb", "-s", selected_device["id"],
-                        "logcat", "-v", "time", "*:V"
+                        "logcat", "-v", "time", "*:I"
                     ],
-                    stdout=open(ANDROID_LOG_FILE, "a"),
+                    stdout=open(ANDROID_LOG_FILE, "w"),
                     stderr=subprocess.STDOUT,
                     text=True
                 )
