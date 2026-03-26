@@ -29,10 +29,19 @@ async def exec_async(cmd: str) -> Dict[str, str]:
 # ---------- iOS Version Parser ----------
 #return the version of the ios device
 def parse_ios_version(runtime: str | None) -> str | None:
+    """
+    Extracts iOS version from runtime string.
+    e.g. "com.apple.CoreSimulator.SimRuntime.iOS-17-0" -> "17.0"
+    """
     if not runtime:
-        return None 
+        return None
     try:
-        return runtime.split(".")[-1].replace("-", ".")
+        part = runtime.split(".")[-1]  # "iOS-17-0"
+        for prefix in ("iOS-", "watchOS-", "tvOS-"):
+            if part.startswith(prefix):
+                part = part[len(prefix):]
+                break
+        return part.replace("-", ".")
     except Exception:
         return None
 

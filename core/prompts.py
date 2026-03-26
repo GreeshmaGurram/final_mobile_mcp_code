@@ -1,4 +1,3 @@
-from mcp.server import Server
 from mcp.types import Prompt, PromptMessage, TextContent
 def generation_agent_prompts(mcp):
     @mcp.prompt()

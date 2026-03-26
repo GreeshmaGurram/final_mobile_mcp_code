@@ -72,21 +72,30 @@ def launch_app_tool_registration(mcp, shared_state, dependencies):
             }
 
         driver = shared_state.appium_driver
+        platform = shared_state.current_platform
+
+        # PLATFORM-AWARE VALIDATION
+        if platform == "android" and bundleId.startswith("com.apple"):
+            return {
+                "content": [{
+                    "type": "text",
+                    "text": "Error: Provided bundleId looks like an iOS bundle. Android expects a package name (e.g. com.example.app)."
+                }]
+            }
 
         try:
             log(f"[launch_app] Launch request for: {bundleId}")
 
-            is_cloud = False
+            # Detect cloud via shared_state (reliable), fallback to URL heuristic
+            current_device = shared_state.current_device or {}
+            is_cloud = current_device.get("type") == "cloud"
 
-            # -------------------------------
-            # DETECT CLOUD (simple heuristic)
-            # -------------------------------
-            executor_url = getattr(driver, "command_executor", None)
-
-            if executor_url and hasattr(executor_url, "_url"):
-                url = executor_url._url
-                if any(x in url for x in ["browserstack", "saucelabs", "lambda"]):
-                    is_cloud = True
+            if not is_cloud:
+                executor_url = getattr(driver, "command_executor", None)
+                if executor_url:
+                    url = getattr(executor_url, "_url", "") or str(executor_url)
+                    if any(x in url for x in ["browserstack", "saucelabs", "lambdatest"]):
+                        is_cloud = True
 
             log(f"[launch_app] Cloud environment: {is_cloud}")
 

@@ -25,6 +25,20 @@ def get_device_logs_tool_registration(mcp, shared_state, dependencies):
                 }]
             }
 
+        # Cloud sessions don't support local log capture
+        current_device = shared_state.current_device or {}
+        if current_device.get("type") == "cloud":
+            provider = current_device.get("provider", "cloud provider")
+            return {
+                "content": [{
+                    "type": "text",
+                    "text": (
+                        f"Device logs via local log capture are not available for cloud sessions ({provider}). "
+                        f"Use the {provider} dashboard to view session logs and recordings."
+                    )
+                }]
+            }
+
         # -------------------------------
         # DETERMINE LOG FILE
         # -------------------------------

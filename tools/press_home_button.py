@@ -47,8 +47,7 @@ def press_home_button_tool_registration(mcp, shared_state, dependencies):
             # iOS HANDLING
             # -------------------------------
             if platform_name == "ios":
-                # Equivalent to: mobile: pressButton
-                driver.execute("mobile: pressButton", {"name": "home"})
+                driver.execute_script("mobile: pressButton", {"name": "home"})
 
             # -------------------------------
             # ANDROID HANDLING

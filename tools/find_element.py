@@ -40,6 +40,15 @@ def find_element_tool_registration(mcp, shared_state, dependencies):
                 }]
             }
 
+        # VALIDATE SELECTOR
+        if not selector or selector.strip() == "":
+            return {
+                "content": [{
+                    "type": "text",
+                    "text": "Error: selector cannot be empty."
+                }]
+            }
+
         driver = shared_state.appium_driver
         platform = shared_state.current_platform
 
@@ -59,6 +68,15 @@ def find_element_tool_registration(mcp, shared_state, dependencies):
                 "content": [{
                     "type": "text",
                     "text": "Error: selector cannot be empty."
+                }]
+            }
+
+        # VALIDATE PLATFORM
+        if not platform:
+            return {
+                "content": [{
+                    "type": "text",
+                    "text": "Error: Platform not detected. Please start a session first."
                 }]
             }
 
@@ -92,62 +110,16 @@ def find_element_tool_registration(mcp, shared_state, dependencies):
         try:
             log(f"[find_element] Strategy: {strategy}, Selector: {selector}")
 
-            #element = driver.find_element( strategy, selector)
+            element = driver.find_element(strategy, selector)
+            element_id = element.id
+            log(f"[find_element] Element found with ID: {element_id}")
 
-            # Mapping strategies (Python Appium)
-            if strategy == "id":
-                element = driver.find_element("id", selector)
-
-            elif strategy == "accessibility id":
-                element = driver.find_element("accessibility id", selector)
-
-            elif strategy == "xpath":
-                element = driver.find_element("xpath", selector)
-
-            elif strategy == "class name":
-                element = driver.find_element("class name", selector)
-
-            elif strategy == "name":
-                element = driver.find_element("name", selector)
-
-            elif strategy == "-android uiautomator":
-                element = driver.find_element("-android uiautomator", selector)
-
-            elif strategy == "-ios predicate string":
-                element = driver.find_element("-ios predicate string", selector)
-
-            elif strategy == "-ios class chain":
-                element = driver.find_element("-ios class chain", selector)
-
-            else:
-                return {
-                    "content": [{
-                        "type": "text",
-                        "text": f"Strategy '{strategy}' not implemented"
-                    }]
-                }
-
-            # HANDLE RESULT
-            if element:
-                element_id = element.id
-                log(f"[find_element] Element found with ID: {element_id}")
-
-                return {
-                    "content": [{
-                        "type": "text",
-                        "text": f"Element found. ID: {element_id}"
-                    }]
-                }
-
-            else:
-                log("[find_element] Element not found")
-
-                return {
-                    "content": [{
-                        "type": "text",
-                        "text": "Element not found"
-                    }]
-                }
+            return {
+                "content": [{
+                    "type": "text",
+                    "text": f"Element found. ID: {element_id}"
+                }]
+            }
 
         except Exception as e:
             log(f"[find_element] Error: {str(e)}")

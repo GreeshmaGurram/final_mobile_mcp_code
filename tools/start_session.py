@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 from pathlib import Path
 from typing import Optional, Dict, Any
@@ -6,12 +7,14 @@ from typing import Optional, Dict, Any
 from appium.webdriver import Remote as AppiumRemote
 from appium.options.android import UiAutomator2Options
 from appium.options.ios import XCUITestOptions
+from selenium.webdriver.common.options import ArgOptions
 
 
 def start_session_tool_registration(mcp, shared_state, dependencies):
     """
     Registers the start_session MCP tool.
     Connects to an Appium server and starts a session on a device.
+    Supports local Appium and cloud providers (BrowserStack, Sauce Labs, LambdaTest).
     """
 
     log = dependencies["log_to_file"]
@@ -26,7 +29,11 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
     @mcp.tool()
     async def start_session(
         platform: str = "auto",
-        device_name: Optional[str] = None
+        device_name: Optional[str] = None,
+        cloud_provider: Optional[str] = None,
+        cloud_device_name: Optional[str] = None,
+        cloud_os_version: Optional[str] = None,
+        app: Optional[str] = None,
     ) -> Dict[str, Any]:
 
         # -------------------------------
@@ -40,6 +47,121 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
                 }]
             }
 
+        # -------------------------------
+        # CLOUD SESSION
+        # -------------------------------
+        provider = (cloud_provider or os.getenv("CLOUD_PROVIDER", "")).strip().lower()
+
+        if provider:
+            username = os.getenv("CLOUD_USERNAME", "")
+            access_key = os.getenv("CLOUD_ACCESS_KEY", "")
+            app_url = app or os.getenv("CLOUD_APP_URL", "")
+            device = cloud_device_name or ""
+            os_version = cloud_os_version or ""
+            cloud_platform = platform if platform != "auto" else "android"
+
+            log(f"[start_session] Starting cloud session on {provider}...")
+
+            try:
+                if provider == "browserstack":
+                    hub_url = "https://hub-cloud.browserstack.com/wd/hub"
+                    caps = {
+                        "platformName": "iOS" if cloud_platform == "ios" else "Android",
+                        "bstack:options": {
+                            "userName": username,
+                            "accessKey": access_key,
+                            "deviceName": device,
+                            "osVersion": os_version,
+                            "app": app_url,
+                        }
+                    }
+
+                elif provider == "saucelabs":
+                    hub_url = f"https://{username}:{access_key}@ondemand.us-west-1.saucelabs.com/wd/hub"
+                    caps = {
+                        "platformName": "iOS" if cloud_platform == "ios" else "Android",
+                        "appium:deviceName": device,
+                        "appium:platformVersion": os_version,
+                        "appium:app": app_url,
+                        "appium:automationName": "XCUITest" if cloud_platform == "ios" else "UiAutomator2",
+                    }
+
+                elif provider == "lambdatest":
+                    hub_url = f"https://{username}:{access_key}@mobile-hub.lambdatest.com/wd/hub"
+                    caps = {
+                        "platformName": "iOS" if cloud_platform == "ios" else "Android",
+                        "deviceName": device,
+                        "platformVersion": os_version,
+                        "app": app_url,
+                        "automationName": "XCUITest" if cloud_platform == "ios" else "UiAutomator2",
+                        "isRealMobile": True,
+                        "LT:Options": {
+                            "username": username,
+                            "accessKey": access_key,
+                            "w3c": True,
+                            "build": "MCP Automation",
+                            "name": "MCP Test Session",
+                        }
+                    }
+
+                else:
+                    return {
+                        "content": [{
+                            "type": "text",
+                            "text": f"Unknown cloud provider '{provider}'. Use: browserstack, saucelabs, lambdatest."
+                        }]
+                    }
+
+                # Use platform-specific options for BrowserStack/SauceLabs, raw caps for LambdaTest
+                if provider == "lambdatest":
+                    options = ArgOptions()
+                    for key, value in caps.items():
+                        options.set_capability(key, value)
+                    driver = AppiumRemote(command_executor=hub_url, options=options)
+                elif cloud_platform == "ios":
+                    options = XCUITestOptions().load_capabilities(caps)
+                    driver = AppiumRemote(command_executor=hub_url, options=options)
+                else:
+                    options = UiAutomator2Options().load_capabilities(caps)
+                    driver = AppiumRemote(command_executor=hub_url, options=options)
+
+                log(f"[start_session] Connecting to {provider} at {hub_url}...")
+
+                shared_state.appium_driver = driver
+                shared_state.current_platform = cloud_platform
+                shared_state.current_device = {
+                    "platform": cloud_platform,
+                    "type": "cloud",
+                    "provider": provider,
+                    "name": device or f"{provider} device",
+                    "id": None,
+                    "version": os_version,
+                }
+
+                log(f"[start_session] Cloud session started on {provider}")
+
+                return {
+                    "content": [{
+                        "type": "text",
+                        "text": f"Cloud session started on {provider} ({device or 'default device'})."
+                    }]
+                }
+
+            except Exception as e:
+                shared_state.appium_driver = None
+                shared_state.current_device = None
+                shared_state.current_platform = None
+                log(f"[start_session] Cloud session failed: {str(e)}")
+                return {
+                    "content": [{
+                        "type": "text",
+                        "text": f"Error starting cloud session on {provider}: {str(e)}"
+                    }]
+                }
+
+        # -------------------------------
+        # LOCAL SESSION
+        # -------------------------------
         ios_devices = []
         android_devices = []
 
@@ -181,8 +303,6 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
             )
 
             shared_state.appium_driver = driver
-            # Avoid immediate NoSuchElement when the UI is still settling after launch/transition
-            driver.implicitly_wait(10)
 
             log("[start_session] Session started successfully")
 
@@ -237,18 +357,12 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
             else:
                 log("[start_session] Starting Android logcat...")
 
-                # Clear logcat buffer and truncate file so reads stay fast
-                try:
-                    await exec_async(f'adb -s {selected_device["id"]} logcat -c')
-                except Exception as clear_err:
-                    log(f"[start_session] Warning: could not clear logcat buffer: {str(clear_err)}")
-
                 proc = subprocess.Popen(
                     [
                         "adb", "-s", selected_device["id"],
-                        "logcat", "-v", "time", "*:I"
+                        "logcat", "-v", "time", "*:V"
                     ],
-                    stdout=open(ANDROID_LOG_FILE, "w"),
+                    stdout=open(ANDROID_LOG_FILE, "a"),
                     stderr=subprocess.STDOUT,
                     text=True
                 )

@@ -1,7 +1,5 @@
 from typing import Dict, Any
 
-from appium.webdriver.webelement import WebElement
-
 
 def tap_element_tool_registration(mcp, shared_state, dependencies):
     """
@@ -31,8 +29,7 @@ def tap_element_tool_registration(mcp, shared_state, dependencies):
         # -------------------------------
         # INPUT VALIDATION
         # -------------------------------
-        elementId = (elementId or "").strip()
-        if not elementId:
+        if not elementId or elementId.strip() == "":
             return {
                 "content": [{
                     "type": "text",
@@ -46,9 +43,10 @@ def tap_element_tool_registration(mcp, shared_state, dependencies):
             log(f"[tap_element] Attempting to tap element with ID '{elementId}'")
 
             # -------------------------------
-            # TAP ELEMENT (W3C — not driver.execute("elementClick", ...))
+            # TAP ELEMENT
             # -------------------------------
-            WebElement(driver, elementId).click()
+            # Equivalent to WebdriverIO: elementClick
+            driver.execute("elementClick", {"id": elementId})
 
             log(f"[tap_element] Element with ID '{elementId}' tapped successfully.")
 
