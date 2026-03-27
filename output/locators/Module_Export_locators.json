@@ -1,0 +1,231 @@
+[
+  {
+    "ModuleName": "AS01|Create Asset|Initial screen",
+    "FieldName": "Asset Class",
+    "BusinessType": "TextBox",
+    "Locators": {
+      "Type": "GuiCTextField",
+      "Name": "ANLA-ANLKL",
+      "Engine": "SapEngine",
+      "BusinessAssociation": "Descendants"
+    }
+  },
+  {
+    "ModuleName": "AS01|Create Asset|Initial screen",
+    "FieldName": "Company Code",
+    "BusinessType": "TextBox",
+    "Locators": {
+      "Name": "ANLA-BUKRS",
+      "Engine": "SapEngine",
+      "Type": "GuiCTextField",
+      "BusinessAssociation": "Descendants"
+    }
+  },
+  {
+    "ModuleName": "AS01|Create Asset|Initial screen",
+    "FieldName": "Number of Similar Assets",
+    "BusinessType": "TextBox",
+    "Locators": {
+      "Type": "GuiTextField",
+      "BusinessAssociation": "Descendants",
+      "Name": "RA02S-NASSETS",
+      "Engine": "SapEngine"
+    }
+  },
+  {
+    "ModuleName": "AS01|Create Asset|Initial screen",
+    "FieldName": "Post-capitalization",
+    "BusinessType": "CheckBox",
+    "Locators": {
+      "BusinessAssociation": "Descendants",
+      "Name": "RA02S-XNACH",
+      "Engine": "SapEngine",
+      "Type": "GuiCheckBox"
+    }
+  },
+  {
+    "ModuleName": "AS01|Create Asset|Master Data|General",
+    "FieldName": "Description",
+    "BusinessType": "TextBox",
+    "Locators": {
+      "Name": "ANLA-TXT50",
+      "BusinessAssociation": "Descendants",
+      "Type": "GuiTextField",
+      "Engine": "SapEngine"
+    }
+  },
+  {
+    "ModuleName": "AS01|Create Asset|Master Data|General",
+    "FieldName": "GuiTabStrip",
+    "BusinessType": "TabControl",
+    "Locators": {
+      "Name": "TABSTRIP100",
+      "BusinessAssociation": "Descendants",
+      "Type": "GuiTabStrip",
+      "Engine": "SapEngine"
+    }
+  },
+  {
+    "ModuleName": "AS01|Create Asset|Master Data|General",
+    "FieldName": "Asset Main No Text",
+    "BusinessType": "TextBox",
+    "Locators": {
+      "BusinessAssociation": "Descendants",
+      "Type": "GuiTextField",
+      "Engine": "SapEngine",
+      "Name": "ANLH-ANLHTXT"
+    }
+  },
+  {
+    "ModuleName": "AS01|Create Asset|Master Data|General",
+    "FieldName": "Serial number",
+    "BusinessType": "TextBox",
+    "Locators": {
+      "BusinessAssociation": "Descendants",
+      "Type": "GuiTextField",
+      "Name": "ANLA-SERNR",
+      "Engine": "SapEngine"
+    }
+  },
+  {
+    "ModuleName": "AS01|Create Asset|Master Data|General",
+    "FieldName": "Quantity",
+    "BusinessType": "TextBox",
+    "Locators": {
+      "Type": "GuiTextField",
+      "Name": "ANLA-MENGE",
+      "Engine": "SapEngine",
+      "BusinessAssociation": "Descendants"
+    }
+  },
+  {
+    "ModuleName": "AS01|Create Asset|Master Data|General",
+    "FieldName": "Quantity Unit",
+    "BusinessType": "TextBox",
+    "Locators": {
+      "Engine": "SapEngine",
+      "Name": "ANLA-MEINS",
+      "BusinessAssociation": "Descendants",
+      "Type": "GuiCTextField"
+    }
+  },
+  {
+    "ModuleName": "AS01|Create Asset|Master Data|General",
+    "FieldName": "Capitalized On",
+    "BusinessType": "TextBox",
+    "Locators": {
+      "Engine": "SapEngine",
+      "BusinessAssociation": "Descendants",
+      "RelativeId": "/usr/subTABSTRIP:SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:SAPLATAB:0200/subAREA3:SAPLAIST:1142/ctxtANLA-AKTIV"
+    }
+  },
+  {
+    "ModuleName": "AS01|Create Asset|Master Data|General",
+    "FieldName": "Previous tab page (F5)",
+    "BusinessType": "Button",
+    "Locators": {
+      "Engine": "SapEngine",
+      "Type": "GuiButton",
+      "BusinessAssociation": "Descendants",
+      "Name": "\"btn[5]\""
+    }
+  },
+  {
+    "ModuleName": "AS01|Create Asset|Master Data|General",
+    "FieldName": "Next tab page (F6)",
+    "BusinessType": "Button",
+    "Locators": {
+      "Type": "GuiButton",
+      "Engine": "SapEngine",
+      "Name": "\"btn[6]\"",
+      "BusinessAssociation": "Descendants"
+    }
+  },
+  {
+    "ModuleName": "AS01|Create Asset|Master Data|TimeDependent",
+    "FieldName": "Business Area",
+    "BusinessType": "TextBox",
+    "Locators": {
+      "Engine": "SapEngine",
+      "BusinessAssociation": "Descendants",
+      "Name": "ANLZ-GSBER",
+      "Type": "GuiCTextField"
+    }
+  },
+  {
+    "ModuleName": "AS01|Create Asset|Master Data|TimeDependent",
+    "FieldName": "Cost Center",
+    "BusinessType": "TextBox",
+    "Locators": {
+      "Engine": "SapEngine",
+      "BusinessAssociation": "Descendants",
+      "Type": "GuiCTextField",
+      "Name": "ANLZ-KOSTL"
+    }
+  },
+  {
+    "ModuleName": "AS01|Create Asset|Master Data|TimeDependent",
+    "FieldName": "Resp. Cost Center",
+    "BusinessType": "TextBox",
+    "Locators": {
+      "Engine": "SapEngine",
+      "Type": "GuiCTextField",
+      "Name": "ANLZ-KOSTLV",
+      "BusinessAssociation": "Descendants"
+    }
+  },
+  {
+    "ModuleName": "AS01|Create Asset|Master Data|TimeDependent",
+    "FieldName": "Plant",
+    "BusinessType": "TextBox",
+    "Locators": {
+      "Engine": "SapEngine",
+      "Type": "GuiCTextField",
+      "BusinessAssociation": "Descendants",
+      "Name": "ANLZ-WERKS"
+    }
+  },
+  {
+    "ModuleName": "AS01|Create Asset|Master Data|TimeDependent",
+    "FieldName": "Location",
+    "BusinessType": "TextBox",
+    "Locators": {
+      "Engine": "SapEngine",
+      "Type": "GuiCTextField",
+      "BusinessAssociation": "Descendants",
+      "Name": "ANLZ-STORT"
+    }
+  },
+  {
+    "ModuleName": "AS01|Create Asset|Master Data|TimeDependent",
+    "FieldName": "License Plate Number",
+    "BusinessType": "TextBox",
+    "Locators": {
+      "Engine": "SapEngine",
+      "Name": "ANLZ-KFZKZ",
+      "BusinessAssociation": "Descendants",
+      "Type": "GuiTextField"
+    }
+  },
+  {
+    "ModuleName": "AS01|Create Asset|Master Data|TimeDependent",
+    "FieldName": "Next tab page (F6)",
+    "BusinessType": "Button",
+    "Locators": {
+      "BusinessAssociation": "Descendants",
+      "RelativeId": "\"/tbar[1]/btn[6]\"",
+      "Engine": "SapEngine"
+    }
+  },
+  {
+    "ModuleName": "AS01|Create Asset|Master Data|Assignment",
+    "FieldName": "Evaluation group",
+    "BusinessType": "TextBox",
+    "Locators": {
+      "Engine": "SapEngine",
+      "BusinessAssociation": "Descendants",
+      "Type": "GuiCTextField",
+      "Name": "ANLA-ORD41"
+    }
+  }
+]

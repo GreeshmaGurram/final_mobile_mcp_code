@@ -308,6 +308,21 @@ def login_check():
 
 
 def base_tools_registration(mcp):
+    @mcp.tool()
+    def get_status_tool() -> str:
+        """Check the status of the current job/workflow. Use this to monitor progress between phases."""
+        return get_status()
+
+    @mcp.tool()
+    def get_execution_logs_tool(
+        unique_id: str,
+        execution_id: str = None,
+        limit: int = 500,
+        batch: str = "false"
+    ) -> str:
+        """Fetch real-time execution logs for a script generation or test execution run."""
+        return get_execution_logs(unique_id, execution_id, limit, batch)
+
     @mcp.tool
     def login(user_name, password, project):
         """
