@@ -1,0 +1,29 @@
+{
+  "capability_id": "execution_logs",
+  "tool_name": "get_execution_logs_tool",
+  "description": "Fetch execution logs for a run.",
+  "when_to_use": [
+    "User asks to view run logs",
+    "User asks for script generation/test execution progress details"
+  ],
+  "prerequisites": ["login may be required for backend access"],
+  "required_slots": ["unique_id"],
+  "optional_slots": ["execution_id", "limit", "batch"],
+  "defaults": {
+    "limit": 500,
+    "batch": "false"
+  },
+  "slot_prompts": {
+    "unique_id": "Please share the run unique_id."
+  },
+  "examples": [
+    {
+      "query": "Get logs for run auto-12345",
+      "arguments": {
+        "unique_id": "auto-12345",
+        "limit": 500,
+        "batch": "false"
+      }
+    }
+  ]
+}

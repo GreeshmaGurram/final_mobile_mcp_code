@@ -1,0 +1,20 @@
+{
+  "capability_id": "mobile_get_screenshot_base64",
+  "tool_name": "get_screenshot",
+  "description": "Capture screenshot and return base64 PNG content.",
+  "when_to_use": [
+    "User asks for in-memory screenshot content",
+    "Agent needs screenshot data for downstream processing"
+  ],
+  "prerequisites": ["Active Appium session"],
+  "required_slots": [],
+  "optional_slots": [],
+  "defaults": {},
+  "slot_prompts": {},
+  "examples": [
+    {
+      "query": "Take screenshot",
+      "arguments": {}
+    }
+  ]
+}

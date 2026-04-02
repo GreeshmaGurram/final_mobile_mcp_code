@@ -1,0 +1,40 @@
+{
+  "capability_id": "mobile_start_session_cloud_lambdatest_ios",
+  "tool_name": "start_session",
+  "description": "Start LambdaTest iOS cloud session using prefilled defaults.",
+  "when_to_use": [
+    "User asks to start cloud iOS session on LambdaTest",
+    "User asks to run iOS test on LambdaTest device",
+    "User explicitly asks for cloud execution"
+  ],
+  "prerequisites": [
+    "Valid LambdaTest credentials in environment",
+    "A valid LambdaTest app id should be available"
+  ],
+  "required_slots": [],
+  "optional_slots": [
+    "cloud_device_name",
+    "cloud_os_version",
+    "app"
+  ],
+  "defaults": {
+    "platform": "ios",
+    "cloud_provider": "lambdatest",
+    "cloud_device_name": "iPhone 14",
+    "cloud_os_version": "16",
+    "app": "lt://APP_ID"
+  },
+  "slot_prompts": {},
+  "examples": [
+    {
+      "query": "Start lambdatest ios session",
+      "arguments": {
+        "platform": "ios",
+        "cloud_provider": "lambdatest",
+        "cloud_device_name": "iPhone 14",
+        "cloud_os_version": "16",
+        "app": "lt://APP_ID"
+      }
+    }
+  ]
+}

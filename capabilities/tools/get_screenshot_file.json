@@ -1,0 +1,20 @@
+{
+  "capability_id": "mobile_get_screenshot_file",
+  "tool_name": "get_screenshot_file",
+  "description": "Capture screenshot PNG file and return local path.",
+  "when_to_use": [
+    "User asks to save screenshot as file",
+    "Need a screenshot artifact for sharing/debugging"
+  ],
+  "prerequisites": ["Active Appium session"],
+  "required_slots": [],
+  "optional_slots": [],
+  "defaults": {},
+  "slot_prompts": {},
+  "examples": [
+    {
+      "query": "Save screenshot to file",
+      "arguments": {}
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "capability_id": "mobile_start_session",
+  "tool_name": "start_session",
+  "description": "Start an Appium session on local or cloud device.",
+  "when_to_use": [
+    "User asks to start/connect a device session",
+    "User asks to begin mobile automation",
+    "Use local mode unless the user explicitly asks for cloud execution"
+  ],
+  "prerequisites": [
+    "Appium server/environment must be available",
+    "Cloud credentials should be configured when using cloud provider"
+  ],
+  "required_slots": [],
+  "optional_slots": [
+    "platform",
+    "device_name",
+    "cloud_provider",
+    "cloud_device_name",
+    "cloud_os_version",
+    "app"
+  ],
+  "defaults": {
+    "platform": "auto"
+  },
+  "slot_prompts": {
+    "cloud_provider": "If user requested cloud execution, ask for cloud provider: browserstack, saucelabs, or lambdatest."
+  },
+  "examples": [
+    {
+      "query": "Start session on Android emulator",
+      "arguments": {
+        "platform": "android"
+      }
+    },
+    {
+      "query": "Start BrowserStack iOS session",
+      "arguments": {
+        "platform": "ios",
+        "cloud_provider": "browserstack",
+        "cloud_device_name": "iPhone 14",
+        "cloud_os_version": "16"
+      }
+    }
+  ]
+}

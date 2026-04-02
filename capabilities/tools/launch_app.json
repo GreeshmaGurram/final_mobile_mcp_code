@@ -1,0 +1,24 @@
+{
+  "capability_id": "mobile_launch_app",
+  "tool_name": "launch_app",
+  "description": "Bring app to foreground by package/bundle identifier.",
+  "when_to_use": [
+    "User asks to open/launch specific app",
+    "User asks to restart target app before action"
+  ],
+  "prerequisites": ["Active Appium session"],
+  "required_slots": [],
+  "optional_slots": ["bundleId"],
+  "defaults": {
+    "bundleId": "com.android.settings"
+  },
+  "slot_prompts": {},
+  "examples": [
+    {
+      "query": "Launch settings app",
+      "arguments": {
+        "bundleId": "com.android.settings"
+      }
+    }
+  ]
+}

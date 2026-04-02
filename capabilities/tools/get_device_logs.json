@@ -1,0 +1,20 @@
+{
+  "capability_id": "mobile_get_device_logs",
+  "tool_name": "get_device_logs",
+  "description": "Fetch latest captured device logs (local sessions).",
+  "when_to_use": [
+    "User asks for device logs",
+    "Debugging app/runtime issues during test"
+  ],
+  "prerequisites": ["Active Appium session"],
+  "required_slots": [],
+  "optional_slots": [],
+  "defaults": {},
+  "slot_prompts": {},
+  "examples": [
+    {
+      "query": "Show device logs",
+      "arguments": {}
+    }
+  ]
+}

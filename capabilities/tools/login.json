@@ -1,0 +1,28 @@
+{
+  "capability_id": "auth_login",
+  "tool_name": "login",
+  "description": "Authenticate user and initialize project context.",
+  "when_to_use": [
+    "User asks to sign in or authenticate",
+    "User asks to set project context before workflows"
+  ],
+  "prerequisites": [],
+  "required_slots": ["user_name", "password", "project"],
+  "optional_slots": [],
+  "defaults": {},
+  "slot_prompts": {
+    "user_name": "What is the user name?",
+    "password": "What is the password?",
+    "project": "Which project should I set after login?"
+  },
+  "examples": [
+    {
+      "query": "Login as admin and use TestProject",
+      "arguments": {
+        "user_name": "admin",
+        "password": "<from-user>",
+        "project": "TestProject"
+      }
+    }
+  ]
+}

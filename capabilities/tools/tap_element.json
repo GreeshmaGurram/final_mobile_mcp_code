@@ -1,0 +1,27 @@
+{
+  "capability_id": "mobile_tap_element",
+  "tool_name": "tap_element",
+  "description": "Tap/click an element using elementId.",
+  "when_to_use": [
+    "User asks to tap/click button or field",
+    "After element lookup where elementId is available"
+  ],
+  "prerequisites": [
+    "Active Appium session",
+    "elementId from find_element; use get_page_source first when locating elements on an unknown screen"
+  ],
+  "required_slots": ["elementId"],
+  "optional_slots": [],
+  "defaults": {},
+  "slot_prompts": {
+    "elementId": "Please share the elementId to tap."
+  },
+  "examples": [
+    {
+      "query": "Tap the found login button",
+      "arguments": {
+        "elementId": "<element-id>"
+      }
+    }
+  ]
+}

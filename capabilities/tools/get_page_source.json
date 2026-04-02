@@ -1,0 +1,22 @@
+{
+  "capability_id": "mobile_get_page_source",
+  "tool_name": "get_page_source",
+  "description": "Return current screen XML hierarchy as text (UI layout for the active screen).",
+  "when_to_use": [
+    "User asks for current UI XML/source",
+    "Agent needs hierarchy for debugging locators",
+    "Immediately before find_element when the agent must infer resource-id, content-desc, xpath, or other attributes from the live DOM",
+    "After navigation or UI change and before any tool that depends on knowing the current element tree"
+  ],
+  "prerequisites": ["Active Appium session"],
+  "required_slots": [],
+  "optional_slots": [],
+  "defaults": {},
+  "slot_prompts": {},
+  "examples": [
+    {
+      "query": "Get current page source",
+      "arguments": {}
+    }
+  ]
+}

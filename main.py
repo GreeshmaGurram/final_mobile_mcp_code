@@ -124,8 +124,8 @@ if __name__ == "__main__":
     time.sleep(2)
 
     # ---- PROXY ROUTE ----
-    @app.api_route("/mcp", methods=["GET", "POST", "OPTIONS"])
-    @app.api_route("/mcp/{path:path}", methods=["GET", "POST", "OPTIONS"])
+    @app.api_route("/mcp", methods=["GET", "POST", "DELETE", "OPTIONS"])
+    @app.api_route("/mcp/{path:path}", methods=["GET", "POST", "DELETE", "OPTIONS"])
     async def proxy_mcp(request: Request, path: str = ""):
         if request.method == "OPTIONS":
             return Response(
@@ -137,9 +137,16 @@ if __name__ == "__main__":
                 }
             )
 
-        url = f"http://127.0.0.1:3334/mcp"
-        if path:
-            url += f"/{path}"
+        # Normalize path to avoid accidental "/mcp/mcp" double-prefix from some clients.
+        normalized_path = (path or "").lstrip("/")
+        if normalized_path == "mcp":
+            normalized_path = ""
+        elif normalized_path.startswith("mcp/"):
+            normalized_path = normalized_path[4:]
+
+        url = "http://127.0.0.1:3334/mcp"
+        if normalized_path:
+            url += f"/{normalized_path}"
 
         # CRITICAL FIX: Set a much longer timeout
         timeout = httpx.Timeout(300.0, connect=60.0)  # 5 minutes total, 60s connect
@@ -152,6 +159,7 @@ if __name__ == "__main__":
                 method=request.method,
                 url=url,
                 headers=headers,
+                params=request.query_params,
                 content=await request.body(),
             )
 

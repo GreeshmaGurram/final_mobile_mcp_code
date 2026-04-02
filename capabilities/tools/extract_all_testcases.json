@@ -1,0 +1,26 @@
+{
+  "capability_id": "extract_testcases",
+  "tool_name": "extract_all_testcases",
+  "description": "Extract testcases and steps from raw TSU JSON files.",
+  "when_to_use": [
+    "User asks to extract test cases",
+    "User asks to parse testcase steps/actions from raw JSON"
+  ],
+  "prerequisites": ["Raw JSON files should exist in input folder"],
+  "required_slots": [],
+  "optional_slots": ["input_dir", "output_dir"],
+  "defaults": {
+    "input_dir": "output/raw",
+    "output_dir": "output/testcases"
+  },
+  "slot_prompts": {},
+  "examples": [
+    {
+      "query": "Extract all testcases",
+      "arguments": {
+        "input_dir": "output/raw",
+        "output_dir": "output/testcases"
+      }
+    }
+  ]
+}

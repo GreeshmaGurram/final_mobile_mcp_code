@@ -1,0 +1,31 @@
+{
+  "version": "1.0.0",
+  "registry_type": "mcp_tool_capabilities",
+  "tools": {
+    "login": "tools/login.json",
+    "get_status_tool": "tools/get_status_tool.json",
+    "get_execution_logs_tool": "tools/get_execution_logs_tool.json",
+    "extract_all_tsu": "tools/extract_all_tsu.json",
+    "extract_all_testcases": "tools/extract_all_testcases.json",
+    "extract_all_locators": "tools/extract_all_locators.json",
+    "start_session": "tools/start_session.json",
+    "start_session_local_android": "tools/start_session_local_android.json",
+    "start_session_local_ios": "tools/start_session_local_ios.json",
+    "start_session_cloud_lambdatest_android": "tools/start_session_cloud_lambdatest_android.json",
+    "start_session_cloud_lambdatest_ios": "tools/start_session_cloud_lambdatest_ios.json",
+    "end_session": "tools/end_session.json",
+    "launch_app": "tools/launch_app.json",
+    "find_element": "tools/find_element.json",
+    "tap_element": "tools/tap_element.json",
+    "enter_text": "tools/enter_text.json",
+    "get_element_text": "tools/get_element_text.json",
+    "scroll": "tools/scroll.json",
+    "simulate_gesture": "tools/simulate_gesture.json",
+    "press_home_button": "tools/press_home_button.json",
+    "get_page_source": "tools/get_page_source.json",
+    "get_page_source_file": "tools/get_page_source_file.json",
+    "get_screenshot": "tools/get_screenshot.json",
+    "get_screenshot_file": "tools/get_screenshot_file.json",
+    "get_device_logs": "tools/get_device_logs.json"
+  }
+}

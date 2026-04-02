@@ -1,0 +1,26 @@
+{
+  "capability_id": "convert_tsu_to_json",
+  "tool_name": "extract_all_tsu",
+  "description": "Convert TSU files to raw JSON files.",
+  "when_to_use": [
+    "User asks to parse or convert TSU files",
+    "User asks to generate raw JSON from TSU input"
+  ],
+  "prerequisites": ["Input folder should contain .tsu files"],
+  "required_slots": [],
+  "optional_slots": ["input_dir", "output_dir"],
+  "defaults": {
+    "input_dir": "input",
+    "output_dir": "output/raw"
+  },
+  "slot_prompts": {},
+  "examples": [
+    {
+      "query": "Extract all TSU files",
+      "arguments": {
+        "input_dir": "input",
+        "output_dir": "output/raw"
+      }
+    }
+  ]
+}

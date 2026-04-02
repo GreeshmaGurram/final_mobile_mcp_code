@@ -1,0 +1,36 @@
+{
+  "capability_id": "mobile_simulate_gesture",
+  "tool_name": "simulate_gesture",
+  "description": "Perform custom gesture using W3C action sequence.",
+  "when_to_use": [
+    "User asks for advanced/custom gesture",
+    "Need a gesture not covered by simple scroll/tap"
+  ],
+  "prerequisites": ["Active Appium session"],
+  "required_slots": ["gestureDescription"],
+  "optional_slots": [],
+  "defaults": {},
+  "slot_prompts": {
+    "gestureDescription": "Please provide the gestureDescription JSON (W3C actions)."
+  },
+  "examples": [
+    {
+      "query": "Swipe from center to top",
+      "arguments": {
+        "gestureDescription": [
+          {
+            "type": "pointer",
+            "id": "finger1",
+            "parameters": { "pointerType": "touch" },
+            "actions": [
+              { "type": "pointerMove", "duration": 0, "x": 0.5, "y": 0.6 },
+              { "type": "pointerDown", "button": 0 },
+              { "type": "pointerMove", "duration": 500, "x": 0.5, "y": 0.2 },
+              { "type": "pointerUp", "button": 0 }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

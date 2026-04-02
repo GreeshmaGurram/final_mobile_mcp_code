@@ -1,0 +1,20 @@
+{
+  "capability_id": "mobile_press_home",
+  "tool_name": "press_home_button",
+  "description": "Send home button action to device.",
+  "when_to_use": [
+    "User asks to press home button",
+    "User asks to background the app"
+  ],
+  "prerequisites": ["Active Appium session"],
+  "required_slots": [],
+  "optional_slots": [],
+  "defaults": {},
+  "slot_prompts": {},
+  "examples": [
+    {
+      "query": "Press home",
+      "arguments": {}
+    }
+  ]
+}

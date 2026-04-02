@@ -1,0 +1,31 @@
+{
+  "capability_id": "mobile_find_element",
+  "tool_name": "find_element",
+  "description": "Find a UI element by locator strategy and selector. Use any strategy string the Appium driver accepts for the current platform.",
+  "when_to_use": [
+    "User asks to locate an element",
+    "Agent needs elementId before tap/type/read text",
+    "After get_page_source when building selectors from the current screen XML"
+  ],
+  "prerequisites": [
+    "Active Appium session",
+    "Prefer get_page_source (or get_page_source_file) first when the UI layout or attributes are unknown"
+  ],
+  "required_slots": ["selector"],
+  "optional_slots": ["strategy"],
+  "defaults": {
+    "strategy": "xpath"
+  },
+  "slot_prompts": {
+    "selector": "Please provide the selector value."
+  },
+  "examples": [
+    {
+      "query": "Find login button by accessibility id",
+      "arguments": {
+        "strategy": "accessibility id",
+        "selector": "login_button"
+      }
+    }
+  ]
+}

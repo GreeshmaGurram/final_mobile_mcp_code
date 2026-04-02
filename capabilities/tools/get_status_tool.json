@@ -1,0 +1,20 @@
+{
+  "capability_id": "workflow_status",
+  "tool_name": "get_status_tool",
+  "description": "Get current workflow/job status.",
+  "when_to_use": [
+    "User asks for status update",
+    "User asks whether job completed/failed/in-progress"
+  ],
+  "prerequisites": ["login may be required for backend access"],
+  "required_slots": [],
+  "optional_slots": [],
+  "defaults": {},
+  "slot_prompts": {},
+  "examples": [
+    {
+      "query": "What is the status now?",
+      "arguments": {}
+    }
+  ]
+}

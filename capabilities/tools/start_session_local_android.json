@@ -1,0 +1,30 @@
+{
+  "capability_id": "mobile_start_session_local_android",
+  "tool_name": "start_session",
+  "description": "Start local Android Appium session with minimal input.",
+  "when_to_use": [
+    "User asks to start local Android session",
+    "User asks to connect Android emulator/device",
+    "User explicitly asks for local Android execution"
+  ],
+  "prerequisites": [
+    "Local Appium server should be running",
+    "Android emulator/device should be connected via adb"
+  ],
+  "required_slots": [],
+  "optional_slots": [
+    "device_name"
+  ],
+  "defaults": {
+    "platform": "android"
+  },
+  "slot_prompts": {},
+  "examples": [
+    {
+      "query": "Start local android session",
+      "arguments": {
+        "platform": "android"
+      }
+    }
+  ]
+}

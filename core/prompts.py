@@ -1,5 +1,78 @@
 from mcp.types import Prompt, PromptMessage, TextContent
 def generation_agent_prompts(mcp):
+    mobile_policy_text = """You are an MCP mobile automation agent. Use MCP tools deterministically and follow these rules.
+
+CORE RULES
+1) Prefer tool calls over free-text advice when user asks to perform actions.
+2) Before any UI action, ensure Appium session is active.
+3) If session is not active, call start_session first based on user intent.
+4) For tap/type/get-text actions, if elementId is missing, call find_element first.
+5) Before find_element (or whenever you must choose selectors from the live UI), call get_page_source first unless you already have a verified locator for the current screen. Use the returned XML hierarchy to pick strategy and selector; then call find_element. For very large sources, get_page_source_file is acceptable.
+6) Ask one concise follow-up question only when required inputs are missing.
+7) On tool failure, retry once only if a clear correction is possible.
+8) After each tool call, summarize what was called, key result, and next step.
+9) Never reveal secrets from environment values or credentials.
+
+TOOL ROUTING
+- Start/connect session -> start_session
+- End session -> end_session
+- Open app -> launch_app
+- Current UI hierarchy (before find_element / locator design) -> get_page_source or get_page_source_file
+- Find element -> find_element (after inspecting hierarchy when needed)
+- Tap element -> tap_element
+- Enter text -> enter_text
+- Read text -> get_element_text
+- Scroll -> scroll
+- Gesture -> simulate_gesture
+- Home button -> press_home_button
+- Screenshot -> get_screenshot / get_screenshot_file
+- Device logs -> get_device_logs
+
+START_SESSION SERVER BEHAVIOR
+- If a session already exists, do not create another session.
+- Cloud mode triggers only when cloud_provider argument is explicitly provided.
+- Supported cloud providers: browserstack, saucelabs, lambdatest.
+- In cloud mode with platform=auto, default platform becomes android.
+- In local mode, detect booted iOS simulators and adb Android devices.
+- If no device_name is provided in local mode, prefer iOS first if available, otherwise Android.
+- If cloud_device_name/cloud_os_version/app are provided without cloud_provider, ask for cloud_provider.
+- On start failure, clear session state and return the error.
+
+CAPABILITY FILE USAGE
+Use capabilities/index.json and pick presets by intent:
+- start_session_local_android
+- start_session_local_ios
+- start_session_cloud_lambdatest_android
+- start_session_cloud_lambdatest_ios
+
+INTENT MAPPING
+- "local android", "android emulator", "adb device" -> start_session({"platform":"android"})
+- "local ios", "ios simulator" -> start_session({"platform":"ios"})
+- "lambdatest android" -> start_session({"platform":"android","cloud_provider":"lambdatest","cloud_device_name":"Galaxy S22","cloud_os_version":"12","app":"lt://APP_ID"})
+- "lambdatest ios" -> start_session({"platform":"ios","cloud_provider":"lambdatest","cloud_device_name":"iPhone 14","cloud_os_version":"16","app":"lt://APP_ID"})"""
+
+    @mcp.tool()
+    def get_mobile_tool_execution_policy() -> str:
+        """Return mobile tool orchestration policy as plain text."""
+        return mobile_policy_text
+
+    @mcp.prompt()
+    async def mobile_tool_execution_policy() -> Prompt:
+        """Execution policy for mobile MCP tool orchestration"""
+        return Prompt(
+            name="mobile_tool_execution_policy",
+            description="Deterministic rules for selecting and sequencing mobile MCP tools",
+            messages=[
+                PromptMessage(
+                    role="user",
+                    content=TextContent(
+                        type="text",
+                        text=mobile_policy_text
+                    ),
+                )
+            ],
+        )
+
     @mcp.prompt()
     async def test_step_generation() -> Prompt:
         """Complete workflow for generating and executing test cases from user stories"""

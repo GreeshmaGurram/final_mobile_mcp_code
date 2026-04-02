@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import subprocess
@@ -47,10 +48,52 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
                 }]
             }
 
+        # Helper to run blocking Appium driver creation in a thread
+        # so the async event loop stays alive and MCP doesn't time out.
+        async def create_driver_async(command_executor, options):
+            loop = asyncio.get_event_loop()
+            return await loop.run_in_executor(
+                None,
+                lambda: AppiumRemote(
+                    command_executor=command_executor,
+                    options=options
+                )
+            )
+
+        normalized_platform = (platform or "auto").strip().lower()
+        if normalized_platform not in {"auto", "android", "ios"}:
+            return {
+                "content": [{
+                    "type": "text",
+                    "text": f"Invalid platform '{platform}'. Use: auto, android, ios."
+                }]
+            }
+
         # -------------------------------
         # CLOUD SESSION
         # -------------------------------
-        provider = (cloud_provider or os.getenv("CLOUD_PROVIDER", "")).strip().lower()
+        # Cloud/local routing must be driven by user intent from the agent call.
+        # We intentionally do NOT auto-fallback to env CLOUD_PROVIDER.
+        provider = (cloud_provider or "").strip().lower()
+        cloud_requested_without_provider = (
+            not provider and
+            any([
+                bool((cloud_device_name or "").strip()),
+                bool((cloud_os_version or "").strip()),
+                bool((app or "").strip()),
+            ])
+        )
+
+        if cloud_requested_without_provider:
+            return {
+                "content": [{
+                    "type": "text",
+                    "text": (
+                        "Cloud session parameters were provided without cloud_provider. "
+                        "Set cloud_provider to one of: browserstack, saucelabs, lambdatest."
+                    )
+                }]
+            }
 
         if provider:
             username = os.getenv("CLOUD_USERNAME", "")
@@ -58,12 +101,10 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
             app_url = app or os.getenv("CLOUD_APP_URL", "")
             device = cloud_device_name or ""
             os_version = cloud_os_version or ""
-            cloud_platform = platform if platform != "auto" else "android"
+            cloud_platform = normalized_platform if normalized_platform != "auto" else "android"
 
             log(f"[start_session] Starting cloud session on {provider}...")
 
-            # Appium ends the session if no command arrives for this many seconds (default is often 60).
-            # LambdaTest also enforces a separate grid idle timeout via LT:Options idleTimeout (default ~120s).
             cloud_new_command_timeout = int(os.getenv("CLOUD_NEW_COMMAND_TIMEOUT", "3600"))
             cloud_idle_timeout_lt = int(os.getenv("CLOUD_IDLE_TIMEOUT", "1800"))
 
@@ -109,7 +150,6 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
                             "w3c": True,
                             "build": "MCP Automation",
                             "name": "MCP Test Session",
-                            # Grid idle (no traffic); LT default is low — extend via CLOUD_IDLE_TIMEOUT (max per plan ~1800)
                             "idleTimeout": cloud_idle_timeout_lt,
                         }
                     }
@@ -122,20 +162,20 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
                         }]
                     }
 
-                # Use platform-specific options for BrowserStack/SauceLabs, raw caps for LambdaTest
+                # Build options
                 if provider == "lambdatest":
                     options = ArgOptions()
                     for key, value in caps.items():
                         options.set_capability(key, value)
-                    driver = AppiumRemote(command_executor=hub_url, options=options)
                 elif cloud_platform == "ios":
                     options = XCUITestOptions().load_capabilities(caps)
-                    driver = AppiumRemote(command_executor=hub_url, options=options)
                 else:
                     options = UiAutomator2Options().load_capabilities(caps)
-                    driver = AppiumRemote(command_executor=hub_url, options=options)
 
                 log(f"[start_session] Connecting to {provider} at {hub_url}...")
+
+                # ✅ FIX: Non-blocking driver creation for cloud
+                driver = await create_driver_async(hub_url, options)
 
                 shared_state.appium_driver = driver
                 shared_state.current_platform = cloud_platform
@@ -178,7 +218,7 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
         # -------------------------------
         # iOS DEVICE DETECTION
         # -------------------------------
-        if platform in ("auto", "ios"):
+        if normalized_platform in ("auto", "ios"):
             try:
                 log("[start_session] Detecting iOS simulators...")
 
@@ -205,7 +245,7 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
         # -------------------------------
         # ANDROID DEVICE DETECTION
         # -------------------------------
-        if platform in ("auto", "android"):
+        if normalized_platform in ("auto", "android"):
             try:
                 log("[start_session] Detecting Android devices...")
                 android_devices = detect_android_devices()
@@ -261,14 +301,12 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
         log(f"[start_session] Selected {selected_platform}: {selected_device['name']}")
 
         # -------------------------------
-        # CAPABILITIES (🔥 FIXED HERE)
+        # CAPABILITIES
         # -------------------------------
         caps = {
             "platformName": "iOS" if selected_platform == "ios" else "Android",
             "appium:udid": selected_device["id"],
             "appium:deviceName": selected_device["name"],
-
-            # Common
             "appium:newCommandTimeout": 3600,
         }
 
@@ -277,48 +315,45 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
 
         if selected_platform == "ios":
             caps["appium:automationName"] = "XCUITest"
-
             options = XCUITestOptions().load_capabilities(caps)
 
         else:
-            # 🔥 ANDROID FIXES
             caps.update({
                 "appium:automationName": "UiAutomator2",
-
-                # 🚀 CRITICAL FIX (your error)
                 "appium:uiautomator2ServerLaunchTimeout": 120000,
                 "appium:uiautomator2ServerInstallTimeout": 120000,
                 "appium:adbExecTimeout": 120000,
-
-                # 🧠 Stability
                 "appium:skipServerInstallation": False,
                 "appium:skipDeviceInitialization": False,
                 "appium:noReset": True,
                 "appium:ignoreHiddenApiPolicyError": True
             })
-
             options = UiAutomator2Options().load_capabilities(caps)
 
         log(f"[start_session] Capabilities: {caps}")
 
         # -------------------------------
         # CONNECT TO APPIUM
+        # ✅ FIX: Use run_in_executor so the blocking AppiumRemote()
+        #         call does NOT freeze the async event loop.
+        #         Without this, Claude's MCP client times out waiting
+        #         for a response during the 30-90s session creation.
         # -------------------------------
         try:
-            log("[start_session] Connecting to Appium...")
+            log("[start_session] Connecting to Appium (non-blocking)...")
 
-            driver = AppiumRemote(
-                command_executor="http://127.0.0.1:4723",
-                options=options
-            )
+            driver = await create_driver_async("http://127.0.0.1:4723", options)
 
             shared_state.appium_driver = driver
 
             log("[start_session] Session started successfully")
 
-            # 🔥 DEBUG CHECK
+            # Debug: fetch current activity
             try:
-                current_activity = driver.current_activity
+                loop = asyncio.get_event_loop()
+                current_activity = await loop.run_in_executor(
+                    None, lambda: driver.current_activity
+                )
                 log(f"[start_session] Current activity: {current_activity}")
             except Exception as e:
                 log(f"[start_session] Could not fetch activity: {str(e)}")
@@ -352,7 +387,6 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
         try:
             if selected_platform == "ios":
                 log("[start_session] Starting iOS log capture...")
-
                 proc = subprocess.Popen(
                     [
                         "xcrun", "simctl", "spawn",
@@ -366,7 +400,6 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
 
             else:
                 log("[start_session] Starting Android logcat...")
-
                 proc = subprocess.Popen(
                     [
                         "adb", "-s", selected_device["id"],

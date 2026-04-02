@@ -1,0 +1,20 @@
+{
+  "capability_id": "mobile_end_session",
+  "tool_name": "end_session",
+  "description": "End active Appium session and cleanup log process.",
+  "when_to_use": [
+    "User asks to stop/end current mobile session",
+    "User asks to cleanup after test execution"
+  ],
+  "prerequisites": [],
+  "required_slots": [],
+  "optional_slots": [],
+  "defaults": {},
+  "slot_prompts": {},
+  "examples": [
+    {
+      "query": "End the current session",
+      "arguments": {}
+    }
+  ]
+}

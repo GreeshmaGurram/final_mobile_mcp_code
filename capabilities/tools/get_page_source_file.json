@@ -1,0 +1,21 @@
+{
+  "capability_id": "mobile_get_page_source_file",
+  "tool_name": "get_page_source_file",
+  "description": "Save current screen XML hierarchy to a local file and return path.",
+  "when_to_use": [
+    "User asks to save page source to file",
+    "Need a persistent XML artifact for offline inspection",
+    "Same as get_page_source but hierarchy is too large for inline text—use before find_element to inspect DOM from file"
+  ],
+  "prerequisites": ["Active Appium session"],
+  "required_slots": [],
+  "optional_slots": [],
+  "defaults": {},
+  "slot_prompts": {},
+  "examples": [
+    {
+      "query": "Save page source to file",
+      "arguments": {}
+    }
+  ]
+}

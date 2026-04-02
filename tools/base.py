@@ -309,6 +309,26 @@ def login_check():
 
 def base_tools_registration(mcp):
     @mcp.tool()
+    async def list_registered_tools() -> str:
+        """List all tools exposed by this MCP server with descriptions. Use this when users ask to list/show available tools."""
+        tools = await mcp.list_tools()
+        serialized_tools = [
+            {
+                "name": tool.name,
+                "description": (getattr(tool, "description", "") or "").strip(),
+            }
+            for tool in tools
+        ]
+        serialized_tools.sort(key=lambda item: item["name"])
+        return json.dumps(
+            {
+                "count": len(serialized_tools),
+                "tools": serialized_tools,
+            },
+            indent=2,
+        )
+
+    @mcp.tool()
     def get_status_tool() -> str:
         """Check the status of the current job/workflow. Use this to monitor progress between phases."""
         return get_status()

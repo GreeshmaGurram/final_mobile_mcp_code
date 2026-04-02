@@ -1,0 +1,27 @@
+{
+  "capability_id": "mobile_get_element_text",
+  "tool_name": "get_element_text",
+  "description": "Read text/value from an element using elementId.",
+  "when_to_use": [
+    "User asks to verify label/input text",
+    "Validation step after typing or navigation"
+  ],
+  "prerequisites": [
+    "Active Appium session",
+    "elementId from find_element; use get_page_source first when locating elements on an unknown screen"
+  ],
+  "required_slots": ["elementId"],
+  "optional_slots": [],
+  "defaults": {},
+  "slot_prompts": {
+    "elementId": "Please share the elementId to read text from."
+  },
+  "examples": [
+    {
+      "query": "Get text from username field",
+      "arguments": {
+        "elementId": "<element-id>"
+      }
+    }
+  ]
+}

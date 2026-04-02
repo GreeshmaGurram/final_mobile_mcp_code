@@ -1,0 +1,26 @@
+{
+  "capability_id": "extract_locators",
+  "tool_name": "extract_all_locators",
+  "description": "Extract locator sets from raw TSU JSON files.",
+  "when_to_use": [
+    "User asks to extract all locators",
+    "User asks for module attribute locators from raw output"
+  ],
+  "prerequisites": ["Raw JSON files should exist in input folder"],
+  "required_slots": [],
+  "optional_slots": ["input_dir", "output_dir"],
+  "defaults": {
+    "input_dir": "output/raw",
+    "output_dir": "output/locators"
+  },
+  "slot_prompts": {},
+  "examples": [
+    {
+      "query": "Extract locators from parsed files",
+      "arguments": {
+        "input_dir": "output/raw",
+        "output_dir": "output/locators"
+      }
+    }
+  ]
+}

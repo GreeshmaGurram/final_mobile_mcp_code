@@ -4,22 +4,10 @@ from typing import Dict, Any
 def find_element_tool_registration(mcp, shared_state, dependencies):
     """
     Registers the find_element MCP tool.
-    Supports both Android and iOS strategies.
+    Accepts any locator strategy string supported by the active Appium session/driver.
     """
 
     log = dependencies["log_to_file"]
-
-    # ✅ All supported strategies (Android + iOS + Common)
-    ALLOWED_STRATEGIES = [
-        "id",
-        "accessibility id",
-        "xpath",
-        "class name",
-        "name",
-        "-android uiautomator",
-        "-ios predicate string",
-        "-ios class chain",
-    ]
 
     @mcp.tool()
     async def find_element(
@@ -28,7 +16,9 @@ def find_element_tool_registration(mcp, shared_state, dependencies):
     ) -> Dict[str, Any]:
     # gave default values for strategy and selector just for testing purposes
         """
-        Finds a UI element using a given strategy and selector.
+        Finds a UI element using a locator strategy and selector.
+        Strategy is passed through to Appium (e.g. xpath, id, accessibility id,
+        -android uiautomator, -ios predicate string, or any driver-specific strategy).
         """
 
         # CHECK SESSION
@@ -77,32 +67,6 @@ def find_element_tool_registration(mcp, shared_state, dependencies):
                 "content": [{
                     "type": "text",
                     "text": "Error: Platform not detected. Please start a session first."
-                }]
-            }
-
-        # VALIDATE STRATEGY
-        if strategy not in ALLOWED_STRATEGIES:
-            return {
-                "content": [{
-                    "type": "text",
-                    "text": f"Invalid strategy '{strategy}'. Allowed: {ALLOWED_STRATEGIES}"
-                }]
-            }
-
-        # PLATFORM-SPECIFIC VALIDATION
-        if platform == "android" and strategy.startswith("-ios"):
-            return {
-                "content": [{
-                    "type": "text",
-                    "text": f"Strategy '{strategy}' is iOS-only."
-                }]
-            }
-
-        if platform == "ios" and strategy.startswith("-android"):
-            return {
-                "content": [{
-                    "type": "text",
-                    "text": f"Strategy '{strategy}' is Android-only."
                 }]
             }
 

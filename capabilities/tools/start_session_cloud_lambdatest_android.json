@@ -1,0 +1,40 @@
+{
+  "capability_id": "mobile_start_session_cloud_lambdatest_android",
+  "tool_name": "start_session",
+  "description": "Start LambdaTest Android cloud session using prefilled defaults.",
+  "when_to_use": [
+    "User asks to start cloud Android session on LambdaTest",
+    "User asks to run Android test on LambdaTest device",
+    "User explicitly asks for cloud execution"
+  ],
+  "prerequisites": [
+    "Valid LambdaTest credentials in environment",
+    "A valid LambdaTest app id should be available"
+  ],
+  "required_slots": [],
+  "optional_slots": [
+    "cloud_device_name",
+    "cloud_os_version",
+    "app"
+  ],
+  "defaults": {
+    "platform": "android",
+    "cloud_provider": "lambdatest",
+    "cloud_device_name": "Galaxy S22",
+    "cloud_os_version": "12",
+    "app": "lt://APP_ID"
+  },
+  "slot_prompts": {},
+  "examples": [
+    {
+      "query": "Start lambdatest android session",
+      "arguments": {
+        "platform": "android",
+        "cloud_provider": "lambdatest",
+        "cloud_device_name": "Galaxy S22",
+        "cloud_os_version": "12",
+        "app": "lt://APP_ID"
+      }
+    }
+  ]
+}
