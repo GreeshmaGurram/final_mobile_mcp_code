@@ -153,6 +153,11 @@ def launch_app_tool_registration(mcp, shared_state, dependencies):
 
             log(f"[launch_app] App launched successfully")
 
+            shared_state.action_recorder.record(
+                "launch_app",
+                {"bundleId": bundleId},
+            )
+
             return {
                 "content": [{
                     "type": "text",

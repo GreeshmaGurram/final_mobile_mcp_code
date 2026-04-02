@@ -70,6 +70,8 @@ def press_home_button_tool_registration(mcp, shared_state, dependencies):
 
             log(f"[pressHomeButton] {success_message}")
 
+            shared_state.action_recorder.record("press_home_button", {})
+
             return {
                 "content": [{
                     "type": "text",

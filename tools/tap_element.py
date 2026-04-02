@@ -59,6 +59,13 @@ def tap_element_tool_registration(mcp, shared_state, dependencies):
 
             log(f"[tap_element] Element with ID '{elementId}' tapped successfully.")
 
+            # Record the tap with locator context if available
+            locator = shared_state.action_recorder.get_element_locator(elementId)
+            params = {"elementId": elementId}
+            if locator:
+                params["locator"] = locator
+            shared_state.action_recorder.record("tap_element", params)
+
             return {
                 "content": [{
                     "type": "text",

@@ -4,10 +4,22 @@ from typing import Dict, Any
 def find_element_tool_registration(mcp, shared_state, dependencies):
     """
     Registers the find_element MCP tool.
-    Accepts any locator strategy string supported by the active Appium session/driver.
+    Supports both Android and iOS strategies.
     """
 
     log = dependencies["log_to_file"]
+
+    # All supported strategies (Android + iOS + Common)
+    ALLOWED_STRATEGIES = [
+        "id",
+        "accessibility id",
+        "xpath",
+        "class name",
+        "name",
+        "-android uiautomator",
+        "-ios predicate string",
+        "-ios class chain",
+    ]
 
     @mcp.tool()
     async def find_element(
@@ -16,9 +28,7 @@ def find_element_tool_registration(mcp, shared_state, dependencies):
     ) -> Dict[str, Any]:
     # gave default values for strategy and selector just for testing purposes
         """
-        Finds a UI element using a locator strategy and selector.
-        Strategy is passed through to Appium (e.g. xpath, id, accessibility id,
-        -android uiautomator, -ios predicate string, or any driver-specific strategy).
+        Finds a UI element using a given strategy and selector.
         """
 
         # CHECK SESSION
@@ -70,6 +80,32 @@ def find_element_tool_registration(mcp, shared_state, dependencies):
                 }]
             }
 
+        # VALIDATE STRATEGY
+        if strategy not in ALLOWED_STRATEGIES:
+            return {
+                "content": [{
+                    "type": "text",
+                    "text": f"Invalid strategy '{strategy}'. Allowed: {ALLOWED_STRATEGIES}"
+                }]
+            }
+
+        # PLATFORM-SPECIFIC VALIDATION
+        if platform == "android" and strategy.startswith("-ios"):
+            return {
+                "content": [{
+                    "type": "text",
+                    "text": f"Strategy '{strategy}' is iOS-only."
+                }]
+            }
+
+        if platform == "ios" and strategy.startswith("-android"):
+            return {
+                "content": [{
+                    "type": "text",
+                    "text": f"Strategy '{strategy}' is Android-only."
+                }]
+            }
+
         # FIND ELEMENT
         try:
             log(f"[find_element] Strategy: {strategy}, Selector: {selector}")
@@ -77,6 +113,14 @@ def find_element_tool_registration(mcp, shared_state, dependencies):
             element = driver.find_element(strategy, selector)
             element_id = element.id
             log(f"[find_element] Element found with ID: {element_id}")
+
+            # Cache the locator and record the action
+            shared_state.action_recorder.register_element(element_id, strategy, selector)
+            shared_state.action_recorder.record(
+                "find_element",
+                {"strategy": strategy, "selector": selector},
+                {"elementId": element_id},
+            )
 
             return {
                 "content": [{

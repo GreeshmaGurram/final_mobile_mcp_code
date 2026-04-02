@@ -38,13 +38,6 @@ START_SESSION SERVER BEHAVIOR
 - If cloud_device_name/cloud_os_version/app are provided without cloud_provider, ask for cloud_provider.
 - On start failure, clear session state and return the error.
 
-CAPABILITY FILE USAGE
-Use capabilities/index.json and pick presets by intent:
-- start_session_local_android
-- start_session_local_ios
-- start_session_cloud_lambdatest_android
-- start_session_cloud_lambdatest_ios
-
 INTENT MAPPING
 - "local android", "android emulator", "adb device" -> start_session({"platform":"android"})
 - "local ios", "ios simulator" -> start_session({"platform":"ios"})
@@ -211,6 +204,73 @@ INTENT MAPPING
         - Be patient with long-running operations (generation and execution can take time)
         - Do not use user input tool without user permission and ask what to str to proceed with 
         Now, let's begin. Please provide your login credentials (username, password, project name) to start the workflow."""
+                    )
+                )
+            ]
+        )
+
+    @mcp.prompt()
+    async def mobile_automation_workflow() -> Prompt:
+        """Prompt-driven mobile automation: start session, launch app, record scenario, save JSON"""
+        return Prompt(
+            name="mobile_automation_workflow",
+            description="Prompt-driven mobile automation: start session, launch app, record a scenario, and save the recording as JSON",
+            messages=[
+                PromptMessage(
+                    role="user",
+                    content=TextContent(
+                        type="text",
+                        text="""You are a mobile automation assistant controlling a real or emulated device via Appium MCP tools.
+Follow this workflow strictly and keep the user informed at every step.
+
+**STEP 1 — CAPABILITY SETUP**
+1. Call `list_capability_profiles` to check for saved profiles.
+2. If profiles exist, ask the user: "Which profile would you like to use?" and show the list.
+3. If no profiles exist (or the user wants a new one), collect:
+   - Platform (android / ios)
+   - Device name (for local) OR cloud provider + device name + OS version
+   - App path or package name
+   Then call `save_capability_profile` with a name chosen by the user.
+
+**STEP 2 — START SESSION**
+1. Call `start_session(profile_name=<chosen_profile>)`.
+2. Wait for success confirmation before proceeding.
+3. If the session fails, report the error and stop.
+
+**STEP 3 — LAUNCH APP**
+1. Ask the user: "Which app should I launch? (provide package name or bundle ID)"
+2. Call `launch_app` with the provided package/bundle ID.
+3. Confirm the app is open before proceeding.
+
+**STEP 4 — RECORD SCENARIO**
+1. Ask the user to describe the scenario in plain English (e.g. "tap on Login button, enter credentials, submit").
+2. Call `clear_recording` to start fresh.
+3. For each action in the scenario:
+   a. Call `get_page_source` or `get_screenshot` to understand the current screen state.
+   b. Call `find_element` with the best matching strategy and selector.
+   c. Execute the appropriate action tool:
+      - Tap: `tap_element`
+      - Type: `enter_text`
+      - Scroll: `scroll`
+      - Swipe/pinch: `simulate_gesture`
+      - Home: `press_home_button`
+   d. Confirm each step succeeded before moving to the next.
+   e. If an element is not found, try an alternative locator strategy.
+4. After all actions are complete, call `get_screenshot` to verify the final screen state.
+
+**STEP 5 — SAVE RECORDING**
+1. Call `save_recording` with a descriptive filename (e.g. "recordings/<scenario_name>.json").
+2. Show the user the saved file path and total step count.
+3. The JSON file captures every action with locators and is ready for script generation.
+
+**IMPORTANT RULES:**
+- Never skip Step 1 — capability profiles prevent re-entering device details every session.
+- Always verify each action succeeded (check element found, no errors) before moving on.
+- If any step fails, try one alternative approach, then report clearly if it still fails.
+- Keep responses concise — show only what changed or what needs the user's input.
+- After saving the recording, inform the user they can use `generate_script_for_testcase` to create a runnable test script from the JSON.
+
+Let's begin. I'll start by checking your saved capability profiles."""
                     )
                 )
             ]

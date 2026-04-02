@@ -39,6 +39,8 @@ from tools.press_home_button import press_home_button_tool_registration
 from tools.simulate_gesture import simulate_gesture_tool_registration
 from tools.tap_element import tap_element_tool_registration
 from tools.scroll_action import scroll_tool_registration
+from tools.recording_tools import recording_tools_registration
+from tools.capability_store import capability_store_registration
 
 # ---- LOGGING ----
 logging.basicConfig(level=logging.INFO)
@@ -89,6 +91,8 @@ press_home_button_tool_registration(mcp, shared_state, dependencies)
 simulate_gesture_tool_registration(mcp, shared_state, dependencies)
 tap_element_tool_registration(mcp, shared_state, dependencies)
 scroll_tool_registration(mcp, shared_state, dependencies)
+recording_tools_registration(mcp, shared_state)
+capability_store_registration(mcp)
 
 # =========================================================
 #run this code when file matching the name main is run directly and not when imported

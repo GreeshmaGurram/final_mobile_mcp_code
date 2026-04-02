@@ -10,6 +10,8 @@ from appium.options.android import UiAutomator2Options
 from appium.options.ios import XCUITestOptions
 from selenium.webdriver.common.options import ArgOptions
 
+from tools.capability_store import _load_all as _load_caps
+
 
 def start_session_tool_registration(mcp, shared_state, dependencies):
     """
@@ -35,7 +37,43 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
         cloud_device_name: Optional[str] = None,
         cloud_os_version: Optional[str] = None,
         app: Optional[str] = None,
+        profile_name: Optional[str] = None,
     ) -> Dict[str, Any]:
+        """
+        Start an Appium session on a local or cloud device.
+
+        Quickstart — use a saved capability profile:
+            start_session(profile_name="my-profile")
+
+        All other parameters are ignored when profile_name is provided.
+        Create profiles with save_capability_profile first.
+        """
+
+        # -------------------------------
+        # Load capability profile
+        # -------------------------------
+        if profile_name:
+            profiles = _load_caps()
+            profile = profiles.get(profile_name.strip())
+            if profile is None:
+                names = list(profiles.keys())
+                return {
+                    "content": [{
+                        "type": "text",
+                        "text": (
+                            f"Capability profile '{profile_name}' not found.\n"
+                            f"Available: {names if names else '(none)'}\n"
+                            "Use save_capability_profile to create one."
+                        )
+                    }]
+                }
+            platform = profile.get("platform", "auto")
+            device_name = profile.get("device_name")
+            app = profile.get("app")
+            cloud_provider = profile.get("cloud_provider")
+            cloud_device_name = profile.get("cloud_device_name")
+            cloud_os_version = profile.get("cloud_os_version")
+            log(f"[start_session] Loaded capability profile '{profile_name}'")
 
         # -------------------------------
         # Prevent duplicate session
@@ -187,6 +225,11 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
                     "id": None,
                     "version": os_version,
                 }
+                shared_state.action_recorder.set_session(
+                    cloud_platform,
+                    shared_state.current_device,
+                    app_url,
+                )
 
                 log(f"[start_session] Cloud session started on {provider}")
 
@@ -345,6 +388,11 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
             driver = await create_driver_async("http://127.0.0.1:4723", options)
 
             shared_state.appium_driver = driver
+            shared_state.action_recorder.set_session(
+                selected_platform,
+                selected_device,
+                app or "",
+            )
 
             log("[start_session] Session started successfully")
 

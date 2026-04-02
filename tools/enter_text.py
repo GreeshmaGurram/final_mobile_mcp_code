@@ -78,6 +78,13 @@ def enter_text_tool_registration(mcp, shared_state, dependencies):
 
             log(f"[enter_text] Value set for element with ID '{elementId}' successfully.")
 
+            # Record the text entry with locator context if available
+            locator = shared_state.action_recorder.get_element_locator(elementId)
+            params = {"elementId": elementId, "text": text}
+            if locator:
+                params["locator"] = locator
+            shared_state.action_recorder.record("enter_text", params)
+
             return {
                 "content": [{
                     "type": "text",

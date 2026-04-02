@@ -195,6 +195,11 @@ def scroll_tool_registration(mcp, shared_state, dependencies):
 
             log("[scroll] Scroll executed successfully")
 
+            shared_state.action_recorder.record(
+                "scroll",
+                {"direction": direction, "distance": distance},
+            )
+
             return {
                 "content": [{
                     "type": "text",

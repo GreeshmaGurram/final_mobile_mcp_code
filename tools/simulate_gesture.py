@@ -175,6 +175,11 @@ def simulate_gesture_tool_registration(mcp, shared_state, dependencies):
 
             log("[simulate_gesture] W3C actions performed successfully.")
 
+            shared_state.action_recorder.record(
+                "simulate_gesture",
+                {"gestureDescription": parsed_action_sequences},
+            )
+
             return {
                 "content": [{
                     "type": "text",

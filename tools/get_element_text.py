@@ -49,6 +49,12 @@ def get_element_text_tool_registration(mcp, shared_state, dependencies):
 
             log(f"[get_element_text] Successfully got text from element with ID '{elementId}'. Text: \"{text}\"")
 
+            locator = shared_state.action_recorder.get_element_locator(elementId)
+            params = {"elementId": elementId}
+            if locator:
+                params["locator"] = locator
+            shared_state.action_recorder.record("get_element_text", params, {"text": text})
+
             return {
                 "content": [{
                     "type": "text",
