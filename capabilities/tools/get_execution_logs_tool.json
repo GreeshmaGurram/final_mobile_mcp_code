@@ -13,8 +13,12 @@
     "limit": 500,
     "batch": "false"
   },
+  "modes": {},
   "slot_prompts": {
-    "unique_id": "Please share the run unique_id."
+    "unique_id": "Please share the run unique_id.",
+    "execution_id": "Optional execution id if the backend needs it.",
+    "limit": "Max log lines to return",
+    "batch": "Batch mode flag as string true/false"
   },
   "examples": [
     {

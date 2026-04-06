@@ -37,6 +37,10 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
         cloud_device_name: Optional[str] = None,
         cloud_os_version: Optional[str] = None,
         app: Optional[str] = None,
+        cloud_auto_launch: Optional[bool] = None,
+        cloud_app_package: Optional[str] = None,
+        cloud_app_activity: Optional[str] = None,
+        cloud_bundle_id: Optional[str] = None,
         profile_name: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
@@ -119,6 +123,9 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
                 bool((cloud_device_name or "").strip()),
                 bool((cloud_os_version or "").strip()),
                 bool((app or "").strip()),
+                bool((cloud_app_package or "").strip()),
+                bool((cloud_app_activity or "").strip()),
+                bool((cloud_bundle_id or "").strip()),
             ])
         )
 
@@ -136,7 +143,6 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
         if provider:
             username = os.getenv("CLOUD_USERNAME", "")
             access_key = os.getenv("CLOUD_ACCESS_KEY", "")
-            app_url = app or os.getenv("CLOUD_APP_URL", "")
             device = cloud_device_name or ""
             os_version = cloud_os_version or ""
             cloud_platform = normalized_platform if normalized_platform != "auto" else "android"
@@ -145,6 +151,12 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
 
             cloud_new_command_timeout = int(os.getenv("CLOUD_NEW_COMMAND_TIMEOUT", "3600"))
             cloud_idle_timeout_lt = int(os.getenv("CLOUD_IDLE_TIMEOUT", "1800"))
+
+            app_url = (app or "").strip() if app is not None else (os.getenv("CLOUD_APP_URL", "") or "").strip()
+
+            desired_auto_launch = None
+            cloud_launch_target_label = ""
+            lt_post_activate = False
 
             try:
                 if provider == "browserstack":
@@ -157,7 +169,6 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
                             "accessKey": access_key,
                             "deviceName": device,
                             "osVersion": os_version,
-                            "app": app_url,
                         }
                     }
 
@@ -174,12 +185,51 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
 
                 elif provider == "lambdatest":
                     hub_url = f"https://{username}:{access_key}@mobile-hub.lambdatest.com/wd/hub"
+
+                    # Real-device hubs often reject session caps such as appPackage, appActivity, bundleId,
+                    # and autoLaunch ("capability not supported for real devices"). Use minimal caps only,
+                    # then activate cloud_app_package / cloud_bundle_id via Appium after the session exists.
+                    android_target_package = (cloud_app_package or "").strip() if cloud_platform == "android" else ""
+                    ios_target_bundle_id = (cloud_bundle_id or "").strip() if cloud_platform == "ios" else ""
+                    has_launch_target = bool(android_target_package or ios_target_bundle_id)
+
+                    # Decide whether to include an app artifact (lt://...) in the session.
+                    # - If user explicitly passes `app`, we use it (empty string clears app for this call).
+                    # - If no `app` and they set a launch target, do not inject CLOUD_APP_URL (avoids OS mismatch).
+                    # - Otherwise fall back to CLOUD_APP_URL for legacy single-app runs.
+                    if app is not None:
+                        app_url = (app or "").strip()
+                    else:
+                        app_url = "" if has_launch_target else (os.getenv("CLOUD_APP_URL", "") or "").strip()
+
+                    if cloud_auto_launch is not None:
+                        desired_auto_launch = bool(cloud_auto_launch)
+                    else:
+                        desired_auto_launch = False if has_launch_target else True
+
+                    cloud_launch_target_label = (
+                        android_target_package if android_target_package else ios_target_bundle_id
+                    )
+
+                    if cloud_auto_launch is False and not has_launch_target:
+                        return {
+                            "content": [{
+                                "type": "text",
+                                "text": (
+                                    "LambdaTest: cloud_auto_launch=false requires a post-connect target. "
+                                    "Provide cloud_app_package (Android) or cloud_bundle_id (iOS), or omit cloud_auto_launch."
+                                )
+                            }]
+                        }
+
+                    # Bare device session (no lt:// and no launch target) is allowed — start on launcher/home.
+                    # Optional app_url from CLOUD_APP_URL still works for classic flows.
+
                     caps = {
                         "platformName": "iOS" if cloud_platform == "ios" else "Android",
                         "appium:newCommandTimeout": cloud_new_command_timeout,
                         "deviceName": device,
                         "platformVersion": os_version,
-                        "app": app_url,
                         "automationName": "XCUITest" if cloud_platform == "ios" else "UiAutomator2",
                         "isRealMobile": True,
                         "LT:Options": {
@@ -189,8 +239,15 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
                             "build": "MCP Automation",
                             "name": "MCP Test Session",
                             "idleTimeout": cloud_idle_timeout_lt,
-                        }
+                        },
                     }
+
+                    if app_url:
+                        caps["app"] = app_url
+
+                    lt_post_activate = bool(cloud_launch_target_label) and (
+                        not app_url or cloud_auto_launch is False
+                    )
 
                 else:
                     return {
@@ -225,18 +282,71 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
                     "id": None,
                     "version": os_version,
                 }
+
+                session_app_ref = cloud_launch_target_label or app_url or ""
                 shared_state.action_recorder.set_session(
                     cloud_platform,
                     shared_state.current_device,
-                    app_url,
+                    session_app_ref,
                 )
+
+                # LambdaTest: open system/preinstalled app after session (never via appPackage in session caps).
+                if provider == "lambdatest" and lt_post_activate:
+                    try:
+                        loop = asyncio.get_event_loop()
+                        if cloud_platform == "android":
+                            pkg = (cloud_app_package or "").strip()
+                            act = (cloud_app_activity or "").strip()
+                            if act:
+                                await loop.run_in_executor(
+                                    None,
+                                    lambda: driver.start_activity(pkg, act),
+                                )
+                            else:
+                                try:
+                                    await loop.run_in_executor(
+                                        None,
+                                        lambda p=pkg: driver.activate_app(p),
+                                    )
+                                except Exception:
+                                    await loop.run_in_executor(
+                                        None,
+                                        lambda p=pkg: driver.start_activity(p, ".Settings"),
+                                    )
+                        else:
+                            await loop.run_in_executor(
+                                None,
+                                lambda: driver.activate_app(
+                                    (cloud_bundle_id or "").strip()
+                                ),
+                            )
+                        log(f"[start_session] Opened target app on cloud: {cloud_launch_target_label}")
+                    except Exception as e:
+                        log(f"[start_session] Failed to open target app: {str(e)}")
+                        return {
+                            "content": [{
+                                "type": "text",
+                                "text": (
+                                    "Cloud session started, but opening the target app failed. "
+                                    f"Target: {cloud_launch_target_label}. "
+                                    f"Error: {str(e)}. "
+                                    "This usually means the app/package/bundleId is not available on that "
+                                    "cloud device image. If you need installation, also provide `app` (lt://...) "
+                                    "and ensure your cloud_app_package/cloud_bundle_id matches that uploaded build."
+                                )
+                            }]
+                        }
 
                 log(f"[start_session] Cloud session started on {provider}")
 
                 return {
                     "content": [{
                         "type": "text",
-                        "text": f"Cloud session started on {provider} ({device or 'default device'})."
+                        "text": (
+                            f"Cloud session started on {provider} ({device or 'default device'}). "
+                            f"autoLaunch={desired_auto_launch}. "
+                            f"Target={cloud_launch_target_label or '(none)'}"
+                        )
                     }]
                 }
 
@@ -245,10 +355,29 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
                 shared_state.current_device = None
                 shared_state.current_platform = None
                 log(f"[start_session] Cloud session failed: {str(e)}")
+
+                err = str(e)
+                hints = []
+                if "401" in err.lower() or "unauthorized" in err.lower():
+                    hints.append("Check CLOUD_USERNAME/CLOUD_ACCESS_KEY.")
+                if "device" in err.lower() and "not" in err.lower():
+                    hints.append("Verify cloud_device_name and cloud_os_version match LambdaTest's pool.")
+                if "capability" in err.lower() or "invalid" in err.lower():
+                    if provider == "lambdatest":
+                        hints.append(
+                            "LambdaTest real devices often reject appPackage/autoLaunch in session caps; "
+                            "use cloud_app_* / cloud_bundle_id (opened after connect)."
+                        )
+                    else:
+                        hints.append("Verify cloud capabilities match the provider documentation.")
+                if not hints:
+                    hints.append("Check the LambdaTest logs/video for capability errors.")
+                hint_text = " " + " ".join(hints)
+
                 return {
                     "content": [{
                         "type": "text",
-                        "text": f"Error starting cloud session on {provider}: {str(e)}"
+                        "text": f"Error starting cloud session on {provider}: {str(e)}.{hint_text}"
                     }]
                 }
 

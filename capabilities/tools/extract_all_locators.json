@@ -13,7 +13,11 @@
     "input_dir": "output/raw",
     "output_dir": "output/locators"
   },
-  "slot_prompts": {},
+  "modes": {},
+  "slot_prompts": {
+    "input_dir": "Folder with raw TSU JSON",
+    "output_dir": "Where to write locator JSON"
+  },
   "examples": [
     {
       "query": "Extract locators from parsed files",

@@ -1,4 +1,7 @@
+import asyncio
 from typing import Dict, Any
+
+from tools.page_source_helper import read_ui_hierarchy
 
 
 def get_page_source_tool_registration(mcp, shared_state, dependencies):
@@ -31,14 +34,11 @@ def get_page_source_tool_registration(mcp, shared_state, dependencies):
         try:
             log("[get_page_source] Attempting to get page source...")
 
-            # -------------------------------
-            # GET PAGE SOURCE
-            # -------------------------------
-            # Equivalent to WebdriverIO getPageSource()
-            response = driver.execute("getPageSource")
-
-            # Appium may return string or dict
-            page_source = response if isinstance(response, str) else response.get("value", "")
+            loop = asyncio.get_event_loop()
+            page_source = await loop.run_in_executor(
+                None,
+                lambda: read_ui_hierarchy(driver, log=log),
+            )
 
             log("[get_page_source] Page source retrieved successfully.")
 

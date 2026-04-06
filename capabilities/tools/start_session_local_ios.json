@@ -1,29 +1,54 @@
 {
   "capability_id": "mobile_start_session_local_ios",
   "tool_name": "start_session",
-  "description": "Start local iOS simulator Appium session with minimal input.",
+  "description": "Start a local iOS simulator Appium session against http://127.0.0.1:4723 using the first booted simulator or a named one.",
   "when_to_use": [
     "User asks to start local iOS session",
     "User asks to connect iOS simulator",
-    "User explicitly asks for local iOS execution"
+    "User explicitly asks for local iOS execution (not cloud)"
   ],
   "prerequisites": [
-    "Xcode simulator should be booted",
-    "Local Appium server should be running"
+    "Xcode Simulator booted (or boot one before connecting)",
+    "Local Appium server running (default URL 127.0.0.1:4723)"
   ],
   "required_slots": [],
   "optional_slots": [
+    "platform",
     "device_name"
   ],
   "defaults": {
     "platform": "ios"
   },
-  "slot_prompts": {},
+  "modes": {
+    "first_booted_simulator": {
+      "description": "Attach to the first booted iOS simulator reported by xcrun simctl.",
+      "arguments": {
+        "platform": "ios"
+      }
+    },
+    "named_simulator": {
+      "description": "Select a simulator when several are booted; device_name matches a substring of the simulator name.",
+      "arguments": {
+        "platform": "ios",
+        "device_name": "iPhone 15"
+      }
+    }
+  },
+  "slot_prompts": {
+    "device_name": "If multiple simulators are booted, which simulator name should we use? Partial match is OK."
+  },
   "examples": [
     {
       "query": "Start local ios session",
       "arguments": {
         "platform": "ios"
+      }
+    },
+    {
+      "query": "Start session on iPhone 15 simulator",
+      "arguments": {
+        "platform": "ios",
+        "device_name": "iPhone 15"
       }
     }
   ]

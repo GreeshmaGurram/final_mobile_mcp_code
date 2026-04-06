@@ -1,39 +1,97 @@
 {
   "capability_id": "mobile_start_session_cloud_lambdatest_android",
   "tool_name": "start_session",
-  "description": "Start LambdaTest Android cloud session using prefilled defaults.",
+  "description": "Start LambdaTest Android cloud session. Supports both app-specific and full device-wide testing.",
   "when_to_use": [
     "User asks to start cloud Android session on LambdaTest",
     "User asks to run Android test on LambdaTest device",
-    "User explicitly asks for cloud execution"
+    "User explicitly asks for cloud execution",
+    "User wants to test the whole Android device on cloud",
+    "User wants to test without a specific app"
   ],
   "prerequisites": [
     "Valid LambdaTest credentials in environment",
-    "A valid LambdaTest app id should be available"
+    "A valid LambdaTest app id is required ONLY for app-specific testing, not for device-wide testing"
   ],
   "required_slots": [],
   "optional_slots": [
     "cloud_device_name",
     "cloud_os_version",
-    "app"
+    "app",
+    "cloud_app_package",
+    "cloud_app_activity",
+    "cloud_auto_launch"
   ],
   "defaults": {
     "platform": "android",
     "cloud_provider": "lambdatest",
-    "cloud_device_name": "Galaxy S22",
-    "cloud_os_version": "12",
+    "cloud_device_name": "Galaxy S25",
+    "cloud_os_version": "15",
     "app": "lt://APP_ID"
   },
-  "slot_prompts": {},
-  "examples": [
-    {
-      "query": "Start lambdatest android session",
+  "modes": {
+    "app_testing": {
+      "description": "Test a specific app uploaded to LambdaTest",
       "arguments": {
         "platform": "android",
         "cloud_provider": "lambdatest",
-        "cloud_device_name": "Galaxy S22",
-        "cloud_os_version": "12",
+        "cloud_device_name": "Galaxy S25",
+        "cloud_os_version": "15",
+        "app": "lt://YOUR_APP_ID"
+      }
+    },
+    "device_wide_testing": {
+      "description": "Real-device sessions do not send appPackage/autoLaunch to the hub (often rejected). Omit app (no lt://); the server starts a bare session then opens Settings via Appium activate_app / start_activity.",
+      "arguments": {
+        "platform": "android",
+        "cloud_provider": "lambdatest",
+        "cloud_device_name": "Galaxy S25",
+        "cloud_os_version": "15",
+        "cloud_app_package": "com.android.settings",
+        "cloud_app_activity": ".Settings"
+      }
+    }
+  },
+  "slot_prompts": {
+    "cloud_device_name": "Which device? Default is Galaxy S25",
+    "cloud_os_version": "Which Android version? Default is 15",
+    "app": "Provide LambdaTest app ID (lt://...) for app testing. Skip for device-wide testing.",
+    "cloud_app_package": "For device-wide testing, Android package to open (e.g. com.android.settings).",
+    "cloud_app_activity": "For device-wide testing, activity (e.g. .Settings) with the package above."
+  },
+  "examples": [
+    {
+      "query": "Start lambdatest android session for my app",
+      "arguments": {
+        "platform": "android",
+        "cloud_provider": "lambdatest",
+        "cloud_device_name": "Galaxy S25",
+        "cloud_os_version": "15",
         "app": "lt://APP_ID"
+      }
+    },
+    {
+      "query": "Start lambdatest android session to test the whole device",
+      "arguments": {
+        "platform": "android",
+        "cloud_provider": "lambdatest",
+        "cloud_device_name": "Galaxy S25",
+        "cloud_os_version": "15",
+        "cloud_auto_launch": false,
+        "cloud_app_package": "com.android.settings",
+        "cloud_app_activity": ".Settings"
+      }
+    },
+    {
+      "query": "Start lambdatest android session on Galaxy S24 with Android 14",
+      "arguments": {
+        "platform": "android",
+        "cloud_provider": "lambdatest",
+        "cloud_device_name": "Galaxy S24",
+        "cloud_os_version": "14",
+        "cloud_auto_launch": false,
+        "cloud_app_package": "com.android.settings",
+        "cloud_app_activity": ".Settings"
       }
     }
   ]

@@ -1,9 +1,11 @@
 from typing import Dict, Any
-import os
+import asyncio
 import tempfile
 import random
 import time
 from pathlib import Path
+
+from tools.page_source_helper import read_ui_hierarchy
 
 
 def get_page_source_file_tool_registration(mcp, shared_state, dependencies):
@@ -36,12 +38,11 @@ def get_page_source_file_tool_registration(mcp, shared_state, dependencies):
         try:
             log("[get_page_source_file] Attempting to get page source...")
 
-            # -------------------------------
-            # GET PAGE SOURCE
-            # -------------------------------
-            response = driver.execute("getPageSource")
-
-            page_source = response if isinstance(response, str) else response.get("value", "")
+            loop = asyncio.get_event_loop()
+            page_source = await loop.run_in_executor(
+                None,
+                lambda: read_ui_hierarchy(driver, log=log),
+            )
 
             log("[get_page_source_file] Page source retrieved successfully.")
 

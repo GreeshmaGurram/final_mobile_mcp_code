@@ -13,6 +13,7 @@
   "required_slots": ["elementId"],
   "optional_slots": [],
   "defaults": {},
+  "modes": {},
   "slot_prompts": {
     "elementId": "Please share the elementId to read text from."
   },

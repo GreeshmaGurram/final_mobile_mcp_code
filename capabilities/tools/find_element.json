@@ -12,12 +12,16 @@
     "Prefer get_page_source (or get_page_source_file) first when the UI layout or attributes are unknown"
   ],
   "required_slots": ["selector"],
-  "optional_slots": ["strategy"],
+  "optional_slots": ["strategy", "refresh_ui", "retry_once"],
   "defaults": {
-    "strategy": "xpath"
+    "strategy": "xpath",
+    "refresh_ui": true,
+    "retry_once": true
   },
+  "modes": {},
   "slot_prompts": {
-    "selector": "Please provide the selector value."
+    "selector": "Please provide the selector value.",
+    "strategy": "Locator strategy (xpath, accessibility id, id, etc.). Default is xpath."
   },
   "examples": [
     {

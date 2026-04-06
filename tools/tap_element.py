@@ -75,10 +75,18 @@ def tap_element_tool_registration(mcp, shared_state, dependencies):
 
         except Exception as e:
             log(f"[tap_element] Error tapping element with ID '{elementId}': {str(e)}")
+            err = str(e)
+            hint = ""
+            lowered = err.lower()
+            if "stale" in lowered or "invalid" in lowered or "no such element" in lowered:
+                hint = (
+                    " Hint: elementId may be stale after a UI change. "
+                    "Call get_page_source, then find_element again to get a fresh elementId."
+                )
 
             return {
                 "content": [{
                     "type": "text",
-                    "text": f"Error tapping element with ID '{elementId}': {str(e)}"
+                    "text": f"Error tapping element with ID '{elementId}': {str(e)}{hint}"
                 }]
             }

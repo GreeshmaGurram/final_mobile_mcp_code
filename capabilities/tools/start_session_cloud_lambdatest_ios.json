@@ -1,39 +1,93 @@
 {
   "capability_id": "mobile_start_session_cloud_lambdatest_ios",
   "tool_name": "start_session",
-  "description": "Start LambdaTest iOS cloud session using prefilled defaults.",
+  "description": "Start LambdaTest iOS cloud session. Supports both app-specific and full device-wide testing.",
   "when_to_use": [
     "User asks to start cloud iOS session on LambdaTest",
     "User asks to run iOS test on LambdaTest device",
-    "User explicitly asks for cloud execution"
+    "User explicitly asks for cloud execution",
+    "User wants to test the whole iOS device on cloud",
+    "User wants to test without a specific uploaded app"
   ],
   "prerequisites": [
     "Valid LambdaTest credentials in environment",
-    "A valid LambdaTest app id should be available"
+    "A valid LambdaTest app id is required ONLY for app-specific testing, not for device-wide testing"
   ],
   "required_slots": [],
   "optional_slots": [
     "cloud_device_name",
     "cloud_os_version",
-    "app"
+    "app",
+    "cloud_bundle_id",
+    "cloud_auto_launch"
   ],
   "defaults": {
     "platform": "ios",
     "cloud_provider": "lambdatest",
-    "cloud_device_name": "iPhone 14",
-    "cloud_os_version": "16",
+    "cloud_device_name": "iPhone 15",
+    "cloud_os_version": "17",
     "app": "lt://APP_ID"
   },
-  "slot_prompts": {},
+  "modes": {
+    "app_testing": {
+      "description": "Test a specific app uploaded to LambdaTest.",
+      "arguments": {
+        "platform": "ios",
+        "cloud_provider": "lambdatest",
+        "cloud_device_name": "iPhone 15",
+        "cloud_os_version": "17",
+        "app": "lt://YOUR_APP_ID"
+      }
+    },
+    "device_wide_testing": {
+      "description": "Test the whole device without launching the primary uploaded app. Entry point is Settings (com.apple.Preferences); use press_home_button to reach the home screen.",
+      "arguments": {
+        "platform": "ios",
+        "cloud_provider": "lambdatest",
+        "cloud_device_name": "iPhone 15",
+        "cloud_os_version": "17",
+        "cloud_auto_launch": false,
+        "cloud_bundle_id": "com.apple.Preferences"
+      }
+    }
+  },
+  "slot_prompts": {
+    "cloud_device_name": "Which device? Default is iPhone 15",
+    "cloud_os_version": "Which iOS version? Default is 17",
+    "app": "Provide LambdaTest app ID (lt://...) for app testing. Skip for device-wide testing.",
+    "cloud_bundle_id": "For device-wide testing, bundle id of the system app to open (e.g. com.apple.Preferences for Settings)."
+  },
   "examples": [
     {
-      "query": "Start lambdatest ios session",
+      "query": "Start lambdatest ios session for my app",
+      "arguments": {
+        "platform": "ios",
+        "cloud_provider": "lambdatest",
+        "cloud_device_name": "iPhone 15",
+        "cloud_os_version": "17",
+        "app": "lt://APP_ID"
+      }
+    },
+    {
+      "query": "Start lambdatest ios session to test the whole device",
+      "arguments": {
+        "platform": "ios",
+        "cloud_provider": "lambdatest",
+        "cloud_device_name": "iPhone 15",
+        "cloud_os_version": "17",
+        "cloud_auto_launch": false,
+        "cloud_bundle_id": "com.apple.Preferences"
+      }
+    },
+    {
+      "query": "Start lambdatest ios session on iPhone 14 with iOS 16",
       "arguments": {
         "platform": "ios",
         "cloud_provider": "lambdatest",
         "cloud_device_name": "iPhone 14",
         "cloud_os_version": "16",
-        "app": "lt://APP_ID"
+        "cloud_auto_launch": false,
+        "cloud_bundle_id": "com.apple.Preferences"
       }
     }
   ]

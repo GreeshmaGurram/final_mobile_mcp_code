@@ -13,6 +13,7 @@
   "required_slots": ["elementId", "text"],
   "optional_slots": [],
   "defaults": {},
+  "modes": {},
   "slot_prompts": {
     "elementId": "Please share the elementId for the input field.",
     "text": "What text should I enter?"

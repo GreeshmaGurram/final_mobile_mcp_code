@@ -10,6 +10,7 @@
   "required_slots": ["user_name", "password", "project"],
   "optional_slots": [],
   "defaults": {},
+  "modes": {},
   "slot_prompts": {
     "user_name": "What is the user name?",
     "password": "What is the password?",

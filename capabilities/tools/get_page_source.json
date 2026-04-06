@@ -12,6 +12,7 @@
   "required_slots": [],
   "optional_slots": [],
   "defaults": {},
+  "modes": {},
   "slot_prompts": {},
   "examples": [
     {

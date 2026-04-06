@@ -13,7 +13,11 @@
     "direction": "down",
     "distance": 0.6
   },
-  "slot_prompts": {},
+  "modes": {},
+  "slot_prompts": {
+    "direction": "up, down, left, or right",
+    "distance": "Normalized scroll distance 0.0–1.0"
+  },
   "examples": [
     {
       "query": "Scroll down a bit",

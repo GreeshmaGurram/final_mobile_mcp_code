@@ -1,23 +1,37 @@
 {
   "capability_id": "mobile_launch_app",
   "tool_name": "launch_app",
-  "description": "Bring app to foreground by package/bundle identifier.",
+  "description": "Bring app to foreground by package/bundle id, open a URL in Chrome/mobile browser (web_url), or pass android_activity when activate_app fails on cloud.",
   "when_to_use": [
     "User asks to open/launch specific app",
-    "User asks to restart target app before action"
+    "User asks to restart target app before action",
+    "Native app is blocked (e.g. forced update) and user agrees to use mobile web instead"
   ],
   "prerequisites": ["Active Appium session"],
   "required_slots": [],
-  "optional_slots": ["bundleId"],
+  "optional_slots": ["bundleId", "web_url", "android_activity", "browser_package"],
   "defaults": {
-    "bundleId": "com.android.settings"
+    "bundleId": "com.android.settings",
+    "browser_package": "com.android.chrome"
   },
-  "slot_prompts": {},
+  "modes": {},
+  "slot_prompts": {
+    "bundleId": "Android package or iOS bundle id to bring to foreground (ignored if web_url is set).",
+    "web_url": "https URL to open (e.g. mobile YouTube search). Uses Appium mobile: deepLink.",
+    "android_activity": "Optional Android activity for start_activity, e.g. .MainActivity — helps when activate_app cannot resolve the launchable activity on cloud.",
+    "browser_package": "Android Chrome package if not default (com.android.chrome)."
+  },
   "examples": [
     {
       "query": "Launch settings app",
       "arguments": {
         "bundleId": "com.android.settings"
+      }
+    },
+    {
+      "query": "Open YouTube search for MCP server in Chrome because YouTube app needs update",
+      "arguments": {
+        "web_url": "https://m.youtube.com/results?search_query=MCP+server"
       }
     }
   ]

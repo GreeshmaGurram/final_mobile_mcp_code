@@ -1,29 +1,54 @@
 {
   "capability_id": "mobile_start_session_local_android",
   "tool_name": "start_session",
-  "description": "Start local Android Appium session with minimal input.",
+  "description": "Start a local Android Appium session against http://127.0.0.1:4723 using the first matching device or a named device.",
   "when_to_use": [
     "User asks to start local Android session",
-    "User asks to connect Android emulator/device",
-    "User explicitly asks for local Android execution"
+    "User asks to connect Android emulator or physical device",
+    "User explicitly asks for local Android execution (not cloud)"
   ],
   "prerequisites": [
-    "Local Appium server should be running",
-    "Android emulator/device should be connected via adb"
+    "Local Appium server running (default URL 127.0.0.1:4723)",
+    "Android emulator or device connected via adb"
   ],
   "required_slots": [],
   "optional_slots": [
+    "platform",
     "device_name"
   ],
   "defaults": {
     "platform": "android"
   },
-  "slot_prompts": {},
+  "modes": {
+    "first_available_device": {
+      "description": "Use the first detected Android device when only one emulator/USB device is available.",
+      "arguments": {
+        "platform": "android"
+      }
+    },
+    "named_device": {
+      "description": "Pick a specific device when multiple are connected; device_name matches a substring of the adb device name.",
+      "arguments": {
+        "platform": "android",
+        "device_name": "Pixel_7_API_34"
+      }
+    }
+  },
+  "slot_prompts": {
+    "device_name": "If multiple Android devices are listed by adb, which name should we use? Partial match is OK."
+  },
   "examples": [
     {
       "query": "Start local android session",
       "arguments": {
         "platform": "android"
+      }
+    },
+    {
+      "query": "Start session on my Pixel emulator",
+      "arguments": {
+        "platform": "android",
+        "device_name": "Pixel"
       }
     }
   ]

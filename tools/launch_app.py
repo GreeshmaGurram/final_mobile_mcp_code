@@ -2,6 +2,15 @@ import asyncio
 from typing import Dict, Any, Optional
 
 
+async def _driver_exec(fn, log, label: str) -> Any:
+    loop = asyncio.get_event_loop()
+    try:
+        return await loop.run_in_executor(None, fn)
+    except Exception as e:
+        log(f"[launch_app] {label} failed: {e}")
+        raise
+
+
 async def _adb_launch_android_package(udid: str, package: str, log) -> None:
     """
     When Appium activate_app fails (e.g. YouTube Shell$HomeActivity resolver bug),
@@ -47,18 +56,29 @@ def launch_app_tool_registration(mcp, shared_state, dependencies):
     log = dependencies["log_to_file"]
 
     @mcp.tool()
-    async def launch_app(bundleId: str = "com.android.settings") -> Dict[str, Any]:
-        #using a sample bundleID just for testing purposes
+    async def launch_app(
+        bundleId: str = "com.android.settings",
+        web_url: Optional[str] = None,
+        android_activity: Optional[str] = None,
+        browser_package: Optional[str] = None,
+    ) -> Dict[str, Any]:
         """
-        Launch an app using bundleId/package name.
+        Launch an app by package/bundle id, or open a URL in the default/Chrome browser (Android/iOS).
+
+        Use web_url when a native app is blocked (e.g. YouTube "Update your app") and mobile web is enough.
+        Optional android_activity uses start_activity(package, activity) — useful when activate_app fails on cloud.
         """
 
         bundleId = (bundleId or "").strip()
-        if not bundleId:
+        web_url = (web_url or "").strip()
+        android_activity = (android_activity or "").strip()
+        browser_package = (browser_package or "").strip() or "com.android.chrome"
+
+        if not bundleId and not web_url:
             return {
                 "content": [{
                     "type": "text",
-                    "text": "Error: bundleId/package name cannot be empty."
+                    "text": "Error: provide bundleId (package) or web_url."
                 }]
             }
 
@@ -73,6 +93,46 @@ def launch_app_tool_registration(mcp, shared_state, dependencies):
 
         driver = shared_state.appium_driver
         platform = shared_state.current_platform
+
+        # -------------------------------
+        # OPEN URL (browser / deep link) — works when native app is unusable
+        # -------------------------------
+        if web_url:
+            try:
+                log(f"[launch_app] Opening URL: {web_url!r}")
+
+                def _deep_link():
+                    args: Dict[str, Any] = {"url": web_url}
+                    if platform == "android":
+                        args["package"] = browser_package
+                    return driver.execute_script("mobile: deepLink", args)
+
+                await _driver_exec(_deep_link, log, "mobile: deepLink")
+
+                shared_state.action_recorder.record(
+                    "launch_app",
+                    {"web_url": web_url, "browser_package": browser_package if platform == "android" else None},
+                )
+                msg = f"Opened URL via deepLink: {web_url}"
+                if platform == "android":
+                    msg += f" (Chrome package: {browser_package})"
+                return {
+                    "content": [{
+                        "type": "text",
+                        "text": msg
+                    }]
+                }
+            except Exception as e:
+                log(f"[launch_app] deepLink failed: {e}")
+                return {
+                    "content": [{
+                        "type": "text",
+                        "text": (
+                            f"Error opening URL '{web_url}': {e}. "
+                            "Try updating the app from Play Store, or verify Chrome/package exists on the device."
+                        )
+                    }]
+                }
 
         # PLATFORM-AWARE VALIDATION
         if platform == "android" and bundleId.startswith("com.apple"):
@@ -132,7 +192,21 @@ def launch_app_tool_registration(mcp, shared_state, dependencies):
             log(f"[launch_app] Activating app: {bundleId}")
 
             try:
-                driver.activate_app(bundleId)
+                if platform == "android" and android_activity:
+                    try:
+                        await _driver_exec(
+                            lambda p=bundleId, a=android_activity: driver.start_activity(p, a),
+                            log,
+                            "start_activity",
+                        )
+                    except Exception as sa_err:
+                        log(
+                            f"[launch_app] start_activity failed ({sa_err}); "
+                            "trying activate_app..."
+                        )
+                        driver.activate_app(bundleId)
+                else:
+                    driver.activate_app(bundleId)
             except Exception as act_err:
                 udid: Optional[str] = None
                 if shared_state.current_device:
@@ -153,10 +227,10 @@ def launch_app_tool_registration(mcp, shared_state, dependencies):
 
             log(f"[launch_app] App launched successfully")
 
-            shared_state.action_recorder.record(
-                "launch_app",
-                {"bundleId": bundleId},
-            )
+            rec: Dict[str, Any] = {"bundleId": bundleId}
+            if android_activity:
+                rec["android_activity"] = android_activity
+            shared_state.action_recorder.record("launch_app", rec)
 
             return {
                 "content": [{

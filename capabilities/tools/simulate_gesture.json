@@ -10,6 +10,7 @@
   "required_slots": ["gestureDescription"],
   "optional_slots": [],
   "defaults": {},
+  "modes": {},
   "slot_prompts": {
     "gestureDescription": "Please provide the gestureDescription JSON (W3C actions)."
   },

@@ -1,30 +1,138 @@
 {
   "capability_id": "mobile_start_session",
   "tool_name": "start_session",
-  "description": "Start an Appium session on local or cloud device.",
+  "description": "Start an Appium session on a local device (auto-detect) or a named cloud provider (BrowserStack, Sauce Labs, LambdaTest). Prefer scenario-specific capability files when the user intent is clearly local Android, local iOS, or LambdaTest.",
   "when_to_use": [
-    "User asks to start/connect a device session",
-    "User asks to begin mobile automation",
-    "Use local mode unless the user explicitly asks for cloud execution"
+    "User asks to start or connect a device session without naming a specific profile",
+    "User asks to begin mobile automation and platform is unclear or mixed",
+    "User requests a cloud provider by name",
+    "User passes profile_name to reuse saved capabilities"
   ],
   "prerequisites": [
-    "Appium server/environment must be available",
-    "Cloud credentials should be configured when using cloud provider"
+    "Local: Appium at http://127.0.0.1:4723 and a booted simulator or adb device",
+    "Cloud: CLOUD_USERNAME and CLOUD_ACCESS_KEY; cloud_device_name and cloud_os_version required when cloud_provider is set",
+    "LambdaTest: for device-wide flows use cloud_auto_launch false plus Android package/activity or iOS bundle id per implementation"
   ],
   "required_slots": [],
   "optional_slots": [
+    "profile_name",
     "platform",
     "device_name",
     "cloud_provider",
     "cloud_device_name",
     "cloud_os_version",
-    "app"
+    "app",
+    "cloud_auto_launch",
+    "cloud_app_package",
+    "cloud_app_activity",
+    "cloud_bundle_id"
   ],
   "defaults": {
     "platform": "auto"
   },
+  "modes": {
+    "saved_profile": {
+      "description": "Load platform, device, and cloud fields from a profile created via save_capability_profile. Other arguments are ignored.",
+      "arguments": {
+        "profile_name": "my-profile"
+      }
+    },
+    "local_auto": {
+      "description": "Pick the first available local device (booted iOS simulator preferred if present, else Android).",
+      "arguments": {
+        "platform": "auto"
+      }
+    },
+    "local_android": {
+      "description": "Local Android only; optional device_name substring match.",
+      "arguments": {
+        "platform": "android",
+        "device_name": "Pixel"
+      }
+    },
+    "local_ios": {
+      "description": "Local iOS simulator only; optional device_name substring match.",
+      "arguments": {
+        "platform": "ios",
+        "device_name": "iPhone 15"
+      }
+    },
+    "cloud_lambdatest_android_app": {
+      "description": "LambdaTest Android with uploaded app artifact.",
+      "arguments": {
+        "platform": "android",
+        "cloud_provider": "lambdatest",
+        "cloud_device_name": "Galaxy S25",
+        "cloud_os_version": "15",
+        "app": "lt://APP_ID"
+      }
+    },
+    "cloud_lambdatest_android_device_wide": {
+      "description": "LambdaTest Android device-wide; opens Settings then use press_home_button for home.",
+      "arguments": {
+        "platform": "android",
+        "cloud_provider": "lambdatest",
+        "cloud_device_name": "Galaxy S25",
+        "cloud_os_version": "15",
+        "cloud_auto_launch": false,
+        "cloud_app_package": "com.android.settings",
+        "cloud_app_activity": ".Settings"
+      }
+    },
+    "cloud_lambdatest_ios_app": {
+      "description": "LambdaTest iOS with uploaded app artifact.",
+      "arguments": {
+        "platform": "ios",
+        "cloud_provider": "lambdatest",
+        "cloud_device_name": "iPhone 15",
+        "cloud_os_version": "17",
+        "app": "lt://APP_ID"
+      }
+    },
+    "cloud_lambdatest_ios_device_wide": {
+      "description": "LambdaTest iOS device-wide; opens Settings (com.apple.Preferences).",
+      "arguments": {
+        "platform": "ios",
+        "cloud_provider": "lambdatest",
+        "cloud_device_name": "iPhone 15",
+        "cloud_os_version": "17",
+        "cloud_auto_launch": false,
+        "cloud_bundle_id": "com.apple.Preferences"
+      }
+    },
+    "cloud_browserstack": {
+      "description": "BrowserStack cloud session; provide app URL/id as required by your project.",
+      "arguments": {
+        "platform": "ios",
+        "cloud_provider": "browserstack",
+        "cloud_device_name": "iPhone 14",
+        "cloud_os_version": "16",
+        "app": "bs://APP_ID"
+      }
+    },
+    "cloud_saucelabs": {
+      "description": "Sauce Labs cloud session.",
+      "arguments": {
+        "platform": "android",
+        "cloud_provider": "saucelabs",
+        "cloud_device_name": "Samsung Galaxy S22",
+        "cloud_os_version": "12",
+        "app": "storage:filename=app.apk"
+      }
+    }
+  },
   "slot_prompts": {
-    "cloud_provider": "If user requested cloud execution, ask for cloud provider: browserstack, saucelabs, or lambdatest."
+    "profile_name": "Which saved capability profile name should load?",
+    "platform": "Use auto, android, or ios. For cloud, set platform to match the device OS.",
+    "device_name": "Local only: substring of simulator or adb device name.",
+    "cloud_provider": "One of: browserstack, saucelabs, lambdatest. Required whenever any other cloud_* or cloud app field is set.",
+    "cloud_device_name": "Cloud device name from the provider catalog.",
+    "cloud_os_version": "OS version string for the cloud device.",
+    "app": "Cloud app identifier (e.g. lt://..., bs://..., or Sauce storage id).",
+    "cloud_auto_launch": "LambdaTest: false for device-wide with explicit package/activity or bundle id.",
+    "cloud_app_package": "LambdaTest Android: package to activate (e.g. com.android.settings).",
+    "cloud_app_activity": "LambdaTest Android: activity relative (.Settings) or fully qualified.",
+    "cloud_bundle_id": "LambdaTest iOS: bundle id to activate (e.g. com.apple.Preferences for Settings)."
   },
   "examples": [
     {
@@ -34,12 +142,41 @@
       }
     },
     {
+      "query": "Start session from saved profile qa-android",
+      "arguments": {
+        "profile_name": "qa-android"
+      }
+    },
+    {
       "query": "Start BrowserStack iOS session",
       "arguments": {
         "platform": "ios",
         "cloud_provider": "browserstack",
         "cloud_device_name": "iPhone 14",
-        "cloud_os_version": "16"
+        "cloud_os_version": "16",
+        "app": "bs://APP_ID"
+      }
+    },
+    {
+      "query": "Start LambdaTest Android session (device-wide)",
+      "arguments": {
+        "platform": "android",
+        "cloud_provider": "lambdatest",
+        "cloud_device_name": "Galaxy S25",
+        "cloud_os_version": "15",
+        "cloud_auto_launch": false,
+        "cloud_app_package": "com.android.settings",
+        "cloud_app_activity": ".Settings"
+      }
+    },
+    {
+      "query": "Start LambdaTest iOS session for uploaded app",
+      "arguments": {
+        "platform": "ios",
+        "cloud_provider": "lambdatest",
+        "cloud_device_name": "iPhone 15",
+        "cloud_os_version": "17",
+        "app": "lt://APP_ID"
       }
     }
   ]

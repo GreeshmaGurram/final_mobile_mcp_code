@@ -13,7 +13,11 @@
     "input_dir": "input",
     "output_dir": "output/raw"
   },
-  "slot_prompts": {},
+  "modes": {},
+  "slot_prompts": {
+    "input_dir": "Folder containing .tsu files",
+    "output_dir": "Where to write raw JSON"
+  },
   "examples": [
     {
       "query": "Extract all TSU files",
