@@ -34,7 +34,7 @@ def tsu_tools_registration(mcp):
                 try:
                     with gzip.open(file, "rb") as f:
                         raw = f.read()
-                except:
+                except (OSError, gzip.BadGzipFile):
                     raw = file.read_bytes()
 
                 parsed = json.loads(raw.decode("utf-8"))

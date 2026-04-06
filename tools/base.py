@@ -13,11 +13,18 @@ if load_dotenv:
     # Loads .env from current working directory or project root if run there
     load_dotenv()
 
-STATIC_USERNAME = "admin"
-STATIC_PASSWORD = "admin123"
-BASE_URL = os.getenv("BASE_URL")
+STATIC_USERNAME = os.getenv("STATIC_USERNAME", "admin")
+STATIC_PASSWORD = os.getenv("STATIC_PASSWORD", "admin123")
+BASE_URL = os.getenv("BASE_URL", "")
 # Static project name to set after login
-STATIC_PROJECT_NAME = "TestProject"
+STATIC_PROJECT_NAME = os.getenv("STATIC_PROJECT_NAME", "TestProject")
+
+
+def _require_base_url() -> str:
+    """Return BASE_URL or raise a clear error if it is not configured."""
+    if not BASE_URL:
+        raise RuntimeError("BASE_URL environment variable is not set.")
+    return BASE_URL
 
 # In-memory cache
 JWT: str = ""
@@ -83,7 +90,7 @@ def set_test_json(test_json: dict) -> None:
     Set JWT in memory and persist it to disk.
     """
     global TEST_JSON
-    TEST_JSON = test_json or ""
+    TEST_JSON = test_json or {}
     ctx = _get_ctx()
     _save_context_to_disk(ctx)
 
@@ -258,7 +265,7 @@ def set_current_project_api(project_name: str, user_id: str) -> bool:
     Calls GET /setCurrentProject?project=<project_name>&userId=<user_id>.
     On success, stores project_name (and user_id if provided).
     """
-    url = BASE_URL+"setCurrentProject"
+    url = _require_base_url() + "setCurrentProject"
     params = {"project": project_name, "userId": user_id}
     headers = get_auth_headers()
     try:
@@ -281,7 +288,7 @@ def login_check():
     Check if current session is alive by calling the isSessionAlive API with JWT in headers.
     Returns a dict: {"status": "Session alive"} or {"status": "Signed out"}.
     """
-    url = BASE_URL + "isSessionAlive"
+    url = _require_base_url() + "isSessionAlive"
     try:
         headers = get_auth_headers()
         response = requests.get(url, headers=headers, timeout=10)
@@ -343,7 +350,7 @@ def base_tools_registration(mcp):
         """Fetch real-time execution logs for a script generation or test execution run."""
         return get_execution_logs(unique_id, execution_id, limit, batch)
 
-    @mcp.tool
+    @mcp.tool()
     def login(user_name, password, project):
         """
             Authenticate with the backend, storing the JWT on success.
@@ -352,7 +359,7 @@ def base_tools_registration(mcp):
             Returns: a result/response on success; raises on authentication or API errors.
             Side effects: Persists the token and updates client session/project state.
         """
-        url = BASE_URL + "login_check_mcp"
+        url = _require_base_url() + "login_check_mcp"
         params = {
             "user_name": user_name,
             "password": password
@@ -399,7 +406,7 @@ CURRENT_JOB_ID = _loaded.get("job_id", "") or ""  # Load job_id on startup
 def get_status() -> str:
     """This Tool is used to receive status of the system, what agents and workflows have completed"""
     #add the screenshot url
-    url = BASE_URL + "status/" + str(get_job_id())
+    url = _require_base_url() + "status/" + str(get_job_id())
     print(url)
     # payload ={
     #     "job_id": get_job_id()
@@ -467,7 +474,7 @@ def get_execution_logs(
             params["currExecutionId"] = execution_id
 
         response = requests.get(
-            BASE_URL + "get_execution_logs",
+            _require_base_url() + "get_execution_logs",
             params=params,
             headers=headers,
             timeout=20

@@ -98,7 +98,8 @@ def get_device_logs_tool_registration(mcp, shared_state, dependencies):
             # TRUNCATE FILE
             # -------------------------------
             try:
-                open(log_file_path, "w").close()
+                with open(log_file_path, "w"):
+                    pass
                 log(f"[get_device_logs] {platform_name} log file truncated.")
             except Exception as trunc_error:
                 log(f"[get_device_logs] Warning: Could not truncate {platform_name} log file: {str(trunc_error)}. Logs might be duplicated on next call.")

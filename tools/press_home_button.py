@@ -15,13 +15,13 @@ def press_home_button_tool_registration(mcp, shared_state, dependencies):
         Simulates pressing the home button.
         """
 
-        log("[pressHomeButton] Simulating home button press.")
+        log("[press_home_button] Simulating home button press.")
 
         # -------------------------------
         # SESSION CHECK
         # -------------------------------
         if not shared_state.appium_driver:
-            log("[pressHomeButton] Error: Appium session not started.")
+            log("[press_home_button] Error: Appium session not started.")
             return {
                 "content": [{
                     "type": "text",
@@ -40,7 +40,7 @@ def press_home_button_tool_registration(mcp, shared_state, dependencies):
         except Exception:
             platform_name = ""
 
-        log(f"[pressHomeButton] Detected platform: {platform_name}")
+        log(f"[press_home_button] Detected platform: {platform_name}")
 
         try:
             # -------------------------------
@@ -68,7 +68,7 @@ def press_home_button_tool_registration(mcp, shared_state, dependencies):
                 "The application is now in the background."
             )
 
-            log(f"[pressHomeButton] {success_message}")
+            log(f"[press_home_button] {success_message}")
 
             shared_state.action_recorder.record("press_home_button", {})
 
@@ -80,7 +80,7 @@ def press_home_button_tool_registration(mcp, shared_state, dependencies):
             }
 
         except Exception as e:
-            log(f"[pressHomeButton] Error simulating home button press: {str(e)}")
+            log(f"[press_home_button] Error simulating home button press: {str(e)}")
 
             return {
                 "content": [{

@@ -45,6 +45,13 @@ def end_session_tool_registration(mcp, shared_state, dependencies):
                     except Exception as kill_error:
                         log(f"[end_session] Error terminating log process: {str(kill_error)}")
 
+                    try:
+                        log_fh = getattr(shared_state.device_log_process, "_log_fh", None)
+                        if log_fh:
+                            log_fh.close()
+                    except Exception:
+                        pass
+
                     shared_state.device_log_process = None
 
                     log(f"[end_session] {platform_name} log capture process terminated.")
@@ -72,6 +79,13 @@ def end_session_tool_registration(mcp, shared_state, dependencies):
                         shared_state.device_log_process.terminate()
                     except Exception as kill_error:
                         log(f"[end_session] Error terminating log process during error: {str(kill_error)}")
+
+                    try:
+                        log_fh = getattr(shared_state.device_log_process, "_log_fh", None)
+                        if log_fh:
+                            log_fh.close()
+                    except Exception:
+                        pass
 
                     shared_state.device_log_process = None
 

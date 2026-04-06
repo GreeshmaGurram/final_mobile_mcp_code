@@ -564,28 +564,32 @@ def start_session_tool_registration(mcp, shared_state, dependencies):
         try:
             if selected_platform == "ios":
                 log("[start_session] Starting iOS log capture...")
+                ios_log_fh = open(IOS_LOG_FILE, "a")
                 proc = subprocess.Popen(
                     [
                         "xcrun", "simctl", "spawn",
                         selected_device["id"],
                         "log", "stream"
                     ],
-                    stdout=open(IOS_LOG_FILE, "a"),
+                    stdout=ios_log_fh,
                     stderr=subprocess.STDOUT,
                     text=True
                 )
+                proc._log_fh = ios_log_fh  # keep reference so it can be closed on end_session
 
             else:
                 log("[start_session] Starting Android logcat...")
+                android_log_fh = open(ANDROID_LOG_FILE, "a")
                 proc = subprocess.Popen(
                     [
                         "adb", "-s", selected_device["id"],
                         "logcat", "-v", "time", "*:V"
                     ],
-                    stdout=open(ANDROID_LOG_FILE, "a"),
+                    stdout=android_log_fh,
                     stderr=subprocess.STDOUT,
                     text=True
                 )
+                proc._log_fh = android_log_fh  # keep reference so it can be closed on end_session
 
             shared_state.device_log_process = proc
 

@@ -84,6 +84,11 @@ async def get_reviews(payload: dict = Body(...)):
 
     try:
         headers = get_auth_headers()
+        if not BASE_URL:
+            return JSONResponse(
+                content={"error": "BASE_URL environment variable is not set."},
+                status_code=500
+            )
         real_response = requests.post(
             BASE_URL + "reviews",
             json={
@@ -116,7 +121,7 @@ async def get_job_status(request: Request):
     # Optional: try to return as JSON if possible
     try:
         return json.loads(status_str)
-    except:
+    except (json.JSONDecodeError, ValueError):
         return {"raw_status": status_str}
 
 
